@@ -32,7 +32,7 @@ public class CollectionUtilsTest {
 
         map = new HashMap<>();
         map.put("1", "1");
-        map.put("2", "2");
+        map.put("3", "2");
     }
 
     @Test
