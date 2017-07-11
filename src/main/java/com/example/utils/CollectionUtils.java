@@ -15,7 +15,6 @@ public class CollectionUtils {
         return Iterables.transform(fromIterable, function);
     }
 
-
     public static <T> Iterable<T> nullFilter(final Iterable<T> unfiltered) {
         return filter(unfiltered, Predicates.notNull());
     }
