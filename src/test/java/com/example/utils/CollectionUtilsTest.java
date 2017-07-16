@@ -11,11 +11,20 @@ import static com.example.utils.CollectionUtils.*;
  * Created by qianliao.zhuang on 2017/7/11.
  */
 public class CollectionUtilsTest {
-    private static List<String> list;
-    private static List<String> nullList;
-    private static Set<String> set;
-    private static Map<String, String> map;
+    private static List<Object> list;
+    private static List<Object> list1;
+    private static List<Object> nullList;
+    private static Set<Object> set;
+    private static Map<String, Object> map;
 
+    private static List<Object> flattenList;
+
+    /**
+     * list: [1, 2, [5, 6]]
+     * nullList: [1, 2, null]
+     * list1: [5, 6]
+     * flattenList: [3, 4, [1, 2, [5, 6]], 7]
+     */
     static {
         list = new ArrayList<>();
         list.add("1");
@@ -35,16 +44,37 @@ public class CollectionUtilsTest {
         map.put("3", "2");
     }
 
+    static {
+        list1 = new ArrayList<>();
+        list1.add("5");
+        list1.add("6");
+        list.add(list1);
+
+        flattenList = new ArrayList<>();
+        flattenList.add("3");
+        flattenList.add("4");
+        flattenList.add(list);
+        flattenList.add("7");
+        flattenList.add(null);
+        flattenList.add(nullList);
+    }
+
+    /**
+     * result: [11, 21, [5, 6]1]
+     */
     @Test
     public void mapTest(){
-        print(map(list, new Function<String, String>() {
+        print(map(list, new Function<Object, String>() {
             @Override
-            public String apply(String input) {
+            public String apply(Object input) {
                 return input + "1";
             }
         }));
     }
 
+    /**
+     * result: [1, 2]
+     */
     @Test
     public void nullFilterTest(){
         print(nullFilter(nullList));
@@ -55,5 +85,18 @@ public class CollectionUtilsTest {
         while (iterator.hasNext()){
             System.out.println(iterator.next());
         }
+    }
+
+    /**
+     * flattenList: [3, 4, [1, 2, [5, 6]], 7, null, [1, 2, null]]
+     * result: [3, 4, 1, 2, 5, 6, 7, null, 1, 2, null]
+     */
+    @Test
+    public void flattenTest(){
+        print(flatten(flattenList));
+
+        List<Object> otherFlattenList = new ArrayList<>();
+        otherFlattenList.add("ss");
+        print(flatten(flattenList, otherFlattenList));
     }
 }
