@@ -1,5 +1,7 @@
 package com.example.utils;
 
+import com.google.common.base.Joiner;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -13,16 +15,14 @@ public class MD5Util {
     public static String sign(Map<String, String> signMap, String signKey) {
         Object[] arrayOfObject = signMap.keySet().toArray();
         Arrays.sort(arrayOfObject);
-        StringBuilder localStringBuffer = new StringBuilder();
+        StringBuilder signBuilder = new StringBuilder();
         // 一般只会在后面加上 signKey
-        localStringBuffer.append(signKey);
-        int i = arrayOfObject.length;
-        for (int j = 0; j < i; j++) {
-            Object localObject = arrayOfObject[j];
-            localStringBuffer.append(localObject).append(signMap.get(localObject));
-        }
-        localStringBuffer.append(signKey);
-        return md5(localStringBuffer.toString().getBytes());
+        signBuilder.append(signKey);
+        Joiner.on("")
+                .withKeyValueSeparator("")
+                .appendTo(signBuilder, signMap);
+        signBuilder.append(signKey);
+        return md5(signBuilder.toString().getBytes());
     }
 
     public static String md5(byte[] paramArrayOfByte) {
