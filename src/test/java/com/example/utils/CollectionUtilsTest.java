@@ -1,6 +1,7 @@
 package com.example.utils;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import java.util.*;
@@ -98,5 +99,17 @@ public class CollectionUtilsTest {
         List<Object> otherFlattenList = new ArrayList<>();
         otherFlattenList.add("ss");
         print(flatten(flattenList, otherFlattenList));
+
+        List<List<String>> iterableOnIterable = Lists.newArrayList();
+        List<String> l = new ArrayList<>();
+        l.add("1");
+        l.add("2");
+        iterableOnIterable.add(l);
+        List<String> l1 = new ArrayList<>();
+        l1.add("3");
+        l1.add("4");
+        iterableOnIterable.add(l1);
+        Iterable<List<String>> s = flatten(iterableOnIterable);
+        print(s);
     }
 }
