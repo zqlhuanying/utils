@@ -32,17 +32,24 @@ public class CollectionUtils {
                 .filter(predicate);
     }
 
-    public static <T> Iterable<T> flatten(final Iterable<T>... flattenIterable){
+    public static <F, T> Iterable<T> flatten(final Iterable<F>... flattenIterable){
         return flatten(Iterables.concat(flattenIterable));
     }
 
-    public static <T> Iterable<T> flatten(final Iterable<T> flattenIterable){
-        return new FluentIterable<T>(){
+    @SuppressWarnings("unchecked")
+    public static <F, T> Iterable<T> flatten(final Iterable<F> flattenIterable){
+        Iterable<F> iterable = new FluentIterable<F>(){
             @Override
-            public Iterator<T> iterator() {
+            public Iterator<F> iterator() {
                 return new FlattenIterator<>(flattenIterable.iterator());
             }
         };
+        return Iterables.transform(iterable, new Function<F, T>() {
+            @Override
+            public T apply(F input) {
+                return (T) input;
+            }
+        });
     }
 
     private static class FlattenIterator<T> extends AbstractIterator<T>{

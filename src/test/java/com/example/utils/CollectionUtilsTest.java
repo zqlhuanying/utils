@@ -106,10 +106,10 @@ public class CollectionUtilsTest {
         l.add("2");
         iterableOnIterable.add(l);
         List<String> l1 = new ArrayList<>();
-        l1.add("3");
+        l1.add("3a");
         l1.add("4");
         iterableOnIterable.add(l1);
-        Iterable<List<String>> s = flatten(iterableOnIterable);
+        Iterable<String> s = flatten(iterableOnIterable);
         print(s);
     }
 }

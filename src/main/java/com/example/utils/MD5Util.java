@@ -1,14 +1,17 @@
 package com.example.utils;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Ordering;
+import com.sun.istack.internal.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by qianliao.zhuang on 2017/7/18.
@@ -17,15 +20,16 @@ public class MD5Util {
     private static final Logger LOGGER = LoggerFactory.getLogger(MD5Util.class);
 
     public static String sign(Map<String, String> signMap, String signKey) {
-        Object[] arrayOfObject = signMap.keySet().toArray();
-        Arrays.sort(arrayOfObject);
+        Map<String, String> sortedMap = new TreeMap<>(Ordering.natural());
+        sortedMap.putAll(signMap);
+
         StringBuilder signBuilder = new StringBuilder();
         // 一般只会在后面加上 signKey
         signBuilder.append(signKey);
         Joiner.on("")
                 .withKeyValueSeparator("")
-                .appendTo(signBuilder, signMap);
-        signBuilder.append(signKey);
+                .appendTo(signBuilder, sortedMap)
+                .append(signKey);
         try {
             // 有坑，如果字符串采用的编码格式不一样，即使是同一个字符串，所获得的MD5值是不一样的
             // 所以最好在获得 byte 数组时，采用统一的编码格式
