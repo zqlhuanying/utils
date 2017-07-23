@@ -14,8 +14,8 @@ import java.util.TreeMap;
 /**
  * Created by qianliao.zhuang on 2017/7/18.
  */
-public class MD5Util {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MD5Util.class);
+public class EncryptUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EncryptUtils.class);
 
     public static String sign(Map<String, String> signMap, String signKey) {
         Map<String, String> sortedMap = new TreeMap<>(Ordering.natural());
@@ -28,19 +28,24 @@ public class MD5Util {
                 .withKeyValueSeparator("")
                 .appendTo(signBuilder, sortedMap)
                 .append(signKey);
+
+        return md5(signBuilder.toString());
+    }
+
+    public static String md5(String str){
         try {
             // 有坑，如果字符串采用的编码格式不一样，即使是同一个字符串，所获得的MD5值是不一样的
             // 所以最好在获得 byte 数组时，采用统一的编码格式
-            return md5(signBuilder.toString().getBytes("UTF-8"));
+            return md5(str.getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {
-            LOGGER.error("Signature 不支持 UTF-8", e);
+            LOGGER.error("不支持UTF-8解码", e);
         }
         return "";
     }
 
-    public static String md5(byte[] paramArrayOfByte) {
+    public static String md5(byte[] md5ByteArray) {
         try {
-            byte[] arrayOfByte = MessageDigest.getInstance("MD5").digest(paramArrayOfByte);
+            byte[] arrayOfByte = MessageDigest.getInstance("MD5").digest(md5ByteArray);
             StringBuilder localStringBuilder = new StringBuilder(2 * arrayOfByte.length);
             int i = arrayOfByte.length;
             for (int j = 0; j < i; j++) {

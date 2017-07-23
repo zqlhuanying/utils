@@ -25,6 +25,7 @@
 		<joda.version>2.9.9</joda.version>
         <guava.version>19.0</guava.version>
 		<fastjosn.version>1.2.35</fastjosn.version>
+		<http.version>4.5.2</http.version>
 	</properties>
 
 	<dependencies>
@@ -46,6 +47,21 @@
 			<groupId>com.alibaba</groupId>
 			<artifactId>fastjson</artifactId>
 			<version>${fastjosn.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>${http.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.4</version>
 		</dependency>
 
 		<dependency>

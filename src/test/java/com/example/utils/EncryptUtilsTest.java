@@ -8,12 +8,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.example.utils.MD5Util.sign;
+import static com.example.utils.EncryptUtils.sign;
 
 /**
  * Created by qianliao.zhuang on 2017/7/18.
  */
-public class MD5UtilsTest {
+public class EncryptUtilsTest {
 
     @Test
     public void signForGetMethodTest(){
@@ -26,7 +26,7 @@ public class MD5UtilsTest {
 
         Map<String, String> paramMap = new HashMap<>();
         paramMap.put("assortmenttype", "1");
-        paramMap.put("keyword", "241");
+        paramMap.put("keyword", "422");
 
         String sign_key = "m8y9uKNrhwVu1Euc";
         Map<String, String> allMap = new HashMap<>();
@@ -35,7 +35,7 @@ public class MD5UtilsTest {
         String sign = sign(allMap, sign_key);
         System.out.println(sign);
 
-        String shouldSign = "403f14858b4de56e3a5ca5720c7f0d3c";
+        String shouldSign = "469f618b7800368b414881223f2fe50d";
         assert shouldSign.equals(sign);
     }
 
