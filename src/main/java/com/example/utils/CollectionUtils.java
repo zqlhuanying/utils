@@ -6,8 +6,10 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Stack;
 
 /**
@@ -22,6 +24,14 @@ public class CollectionUtils {
                 .transform(function);
     }
 
+    public static <F, T> List<T> mapList(final List<F> list, final Function<F, T> function) {
+        return toList(map(list, function));
+    }
+
+    public static <T> List<T> toList(final Iterable<T> iterable){
+        return Lists.newArrayList(iterable);
+    }
+
     public static <T> Iterable<T> nullFilter(final Iterable<T> unfiltered) {
         return filter(unfiltered, Predicates.notNull());
     }
@@ -30,6 +40,30 @@ public class CollectionUtils {
         return FluentIterable
                 .from(unfiltered)
                 .filter(predicate);
+    }
+
+    public static <T> List<T> subList(final List<T> list, final int limitSize){
+        return toList(sub(list, limitSize));
+    }
+
+    public static <T> List<T> subList(final List<T> list, final int offset, final int limitSize){
+        return toList(sub(list, offset, limitSize));
+    }
+
+    public static <T> Iterable<T> sub(final Iterable<T> iterable, final int limitSize){
+        return sub(iterable, 0, limitSize);
+    }
+
+    public static <T> Iterable<T> sub(final Iterable<T> iterable, final int offset, final int limitSize){
+        return FluentIterable
+                .from(iterable)
+                .skip(offset)
+                .limit(limitSize);
+    }
+
+    public static <T> Iterable<List<T>> partition(final Iterable<T> iterable, final int size){
+        return FluentIterable
+                .from(Iterables.partition(iterable, size));
     }
 
     public static <F, T> Iterable<T> flatten(final Iterable<F>... flattenIterable){

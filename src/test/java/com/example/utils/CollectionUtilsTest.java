@@ -112,4 +112,22 @@ public class CollectionUtilsTest {
         Iterable<String> s = flatten(iterableOnIterable);
         print(s);
     }
+
+    /**
+     * input: [5, 6]
+     * result: [6]
+     */
+    @Test
+    public void subTest(){
+        print(sub(list1, 3,1));
+
+        Iterable<Object> iterable = null;
+        int perSize = 1;
+        int index = 0;
+        do {
+            iterable = sub(list1, index, perSize);
+            print(iterable);
+            index += perSize;
+        } while (iterable.iterator().hasNext());
+    }
 }
