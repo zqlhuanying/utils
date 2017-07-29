@@ -42,16 +42,30 @@ public class CollectionUtils {
                 .filter(predicate);
     }
 
-    public static <T> List<T> subList(final List<T> list, final int limitSize){
-        return toList(sub(list, limitSize));
+    public static <T> List<List<T>> subListCycle(final List<T> list, final int limitSize){
+        return toList(
+                new FluentIterable<List<T>>() {
+                    @Override
+                    public Iterator<List<T>> iterator() {
+                        return new SubIterator<>(list, limitSize);
+                    }
+                }
+        );
     }
 
     public static <T> List<T> subList(final List<T> list, final int offset, final int limitSize){
-        return toList(sub(list, offset, limitSize));
+        return toList(
+                sub(list, offset, limitSize)
+        );
     }
 
-    public static <T> Iterable<T> sub(final Iterable<T> iterable, final int limitSize){
-        return sub(iterable, 0, limitSize);
+    public static <T> Iterable<Iterable<T>> subCycle(final Iterable<T> iterable, final int limitSize){
+        return new FluentIterable<Iterable<T>>() {
+            @Override
+            public Iterator<Iterable<T>> iterator() {
+                return new SubIterator<>(iterable, limitSize);
+            }
+        };
     }
 
     public static <T> Iterable<T> sub(final Iterable<T> iterable, final int offset, final int limitSize){
@@ -84,6 +98,28 @@ public class CollectionUtils {
                 return (T) input;
             }
         });
+    }
+
+    private static class SubIterator<T> extends AbstractIterator<T> {
+        private Iterable iterable;
+        private int perSize;
+        private int index;
+
+        public SubIterator(Iterable iterable, int perSize) {
+            this.iterable = iterable;
+            this.perSize = perSize;
+            this.index = 0;
+        }
+
+        @Override
+        protected T computeNext() {
+            Iterable sub = sub(iterable, index, perSize);
+            if(sub.iterator().hasNext()){
+                index += perSize;
+                return (T) sub;
+            }
+            return endOfData();
+        }
     }
 
     private static class FlattenIterator<T> extends AbstractIterator<T>{

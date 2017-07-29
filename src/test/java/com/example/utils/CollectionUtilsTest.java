@@ -82,10 +82,16 @@ public class CollectionUtilsTest {
     }
 
     private <T> void print(Iterable<T> iterable){
-        Iterator iterator = iterable.iterator();
+        print(iterable.iterator());
+    }
+
+
+    private <T> void print(Iterator<T> iterator){
         while (iterator.hasNext()){
-            System.out.println(iterator.next());
+            System.out.print(iterator.next());
+            System.out.print(" ");
         }
+        System.out.print("\n");
     }
 
     /**
@@ -113,21 +119,18 @@ public class CollectionUtilsTest {
         print(s);
     }
 
-    /**
-     * input: [5, 6]
-     * result: [6]
-     */
     @Test
-    public void subTest(){
-        print(sub(list1, 3,1));
-
-        Iterable<Object> iterable = null;
-        int perSize = 1;
-        int index = 0;
-        do {
-            iterable = sub(list1, index, perSize);
-            print(iterable);
-            index += perSize;
-        } while (iterable.iterator().hasNext());
+    public void subTest() {
+        List<String> l = new ArrayList<>();
+        l.add("1");
+        l.add("2");
+        l.add("3");
+        l.add("4");
+        l.add("5");
+        Iterable<Iterable<String>> iterable = subCycle(l, 2);
+        Iterator iterator = iterable.iterator();
+        while (iterator.hasNext()){
+            print(Lists.newArrayList(iterator.next()));
+        }
     }
 }
