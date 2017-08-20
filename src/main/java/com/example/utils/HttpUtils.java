@@ -1,5 +1,7 @@
 package com.example.utils;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -12,10 +14,8 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -23,7 +23,6 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -33,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -52,7 +53,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class HttpUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpUtils.class);
-    private static final String queryRegex = "(?<=%s=)([^&]*)";
+    private static final String QUERY_REGEX = "(?<=%s=)([^&]*)";
+    private static final String ENCODEING = Charsets.UTF_8.name();
 
     public static String httpGet(String url) {
         return httpGet(url, new HashMap<String, String>());
@@ -110,7 +112,7 @@ public class HttpUtils {
                 return "";
             }
 
-            return EntityUtils.toString(entity, "utf-8");
+            return EntityUtils.toString(entity, ENCODEING);
         } catch (ClientProtocolException e) {
             LOGGER.error("httpGet ClientProtocolException", e);
         } catch (IOException e) {
@@ -183,8 +185,8 @@ public class HttpUtils {
             HttpClient httpclient = createSSLInsecureClient(cookieStore);
             // http request
             HttpPost httpPost = new HttpPost(url);
-            StringEntity stringEntity = new StringEntity(postBody, "UTF-8");//解决中文乱码问题
-            stringEntity.setContentEncoding("UTF-8");
+            StringEntity stringEntity = new StringEntity(postBody, ENCODEING);//解决中文乱码问题
+            stringEntity.setContentEncoding(ENCODEING);
             httpPost.setEntity(stringEntity);
             addHeaders(httpPost, headers);
             // http context
@@ -204,7 +206,7 @@ public class HttpUtils {
                 return "";
             }
 
-            return EntityUtils.toString(entity, "utf-8");
+            return EntityUtils.toString(entity, ENCODEING);
         } catch (ClientProtocolException e) {
             LOGGER.error("httpGet ClientProtocolException", e);
         } catch (IOException e) {
@@ -263,14 +265,20 @@ public class HttpUtils {
                 .split(queryString);
     }
 
-    public static String buildQueryString(Map<String, String> params){
+    public static String buildQueryString(final Map<String, String> params){
         if(params == null){
             return "";
         }
+        Map<String, String> tmp = Maps.toMap(params.keySet(), new Function<String, String>() {
+            @Override
+            public String apply(String input) {
+                return urlEncode(params.get(input));
+            }
+        });
         StringBuilder stringBuilder = new StringBuilder();
         return Joiner.on("&")
                 .withKeyValueSeparator("=")
-                .appendTo(stringBuilder, params)
+                .appendTo(stringBuilder, tmp)
                 .toString();
     }
 
@@ -279,7 +287,7 @@ public class HttpUtils {
         checkNotNull(url, "url must be not null");
 
         String realUrl = url;
-        if(params != null){
+        if(params != null && params.size() > 0){
             String queryString = buildQueryString(params);
             Joiner joiner = Joiner.on("?");
             if(hasQueryString(url)){
@@ -302,7 +310,7 @@ public class HttpUtils {
      * @return
      */
     public static String getQueryValue(String url, String query){
-        String regex = String.format(queryRegex, query);
+        String regex = String.format(QUERY_REGEX, query);
         return filterByPattern(regex, url);
     }
 
@@ -316,6 +324,17 @@ public class HttpUtils {
         }
     }
 
+    public static String filterByPattern(String patternString, String data) {
+        Pattern pattern = Pattern.compile(patternString);
+        Matcher matcher = pattern.matcher(data);
+        while (matcher.find()) {
+            if (StringUtils.isNotBlank(matcher.group(1))) {
+                return matcher.group(1);
+            }
+        }
+        return "";
+    }
+
     private static boolean hasQueryString(String url){
         checkNotNull(url, "url must be not null");
 
@@ -326,14 +345,17 @@ public class HttpUtils {
         return true;
     }
 
-    public static String filterByPattern(String patternString, String data) {
-        Pattern pattern = Pattern.compile(patternString);
-        Matcher matcher = pattern.matcher(data);
-        while (matcher.find()) {
-            if (StringUtils.isNotBlank(matcher.group(1))) {
-                return matcher.group(1);
-            }
+    private static String urlEncode(String input) {
+        if (StringUtils.isBlank(input)) {
+            return "";
         }
-        return "";
+
+        try {
+            return URLEncoder.encode(input, ENCODEING);
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.error("不支持 {} 编码", ENCODEING, e);
+        }
+
+        return input;
     }
 }
