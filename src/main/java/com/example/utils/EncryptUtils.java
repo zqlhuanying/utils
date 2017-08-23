@@ -17,6 +17,14 @@ import java.util.TreeMap;
 public class EncryptUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(EncryptUtils.class);
 
+    private static final char[] hexDigits =
+            {
+               '0', '1', '2', '3',
+               '4', '5', '6', '7',
+               '8', '9', 'a', 'b',
+               'c', 'd', 'e', 'f'
+            };
+
     public static String sign(Map<String, String> signMap, String signKey) {
         Map<String, String> sortedMap = new TreeMap<>(Ordering.natural());
         sortedMap.putAll(signMap);
@@ -33,6 +41,10 @@ public class EncryptUtils {
     }
 
     public static String md5(String str){
+        if(str == null){
+            return null;
+        }
+
         try {
             // 有坑，如果字符串采用的编码格式不一样，即使是同一个字符串，所获得的MD5值是不一样的
             // 所以最好在获得 byte 数组时，采用统一的编码格式
@@ -46,18 +58,21 @@ public class EncryptUtils {
     public static String md5(byte[] md5ByteArray) {
         try {
             byte[] arrayOfByte = MessageDigest.getInstance("MD5").digest(md5ByteArray);
-            StringBuilder localStringBuilder = new StringBuilder(2 * arrayOfByte.length);
-            int i = arrayOfByte.length;
-            for (int j = 0; j < i; j++) {
-                int k = arrayOfByte[j];
-                if ((k & 0xFF) < 16) {
-                    localStringBuilder.append("0");
-                }
-                localStringBuilder.append(Integer.toHexString(k & 0xFF));
-            }
-            return localStringBuilder.toString();
+            return byteArrayToHex(arrayOfByte);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("MessageDigest不支持MD5", e);
         }
+    }
+
+    private static String byteArrayToHex(byte[] byteArray) {
+        char[] resultCharArray = new char[byteArray.length * 2];
+
+        int index = 0;
+        for (byte b : byteArray) {
+            resultCharArray[index++] = hexDigits[b >>> 4 & 0xf];
+            resultCharArray[index++] = hexDigits[b & 0xf];
+        }
+
+        return new String(resultCharArray);
     }
 }

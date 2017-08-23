@@ -55,6 +55,8 @@ public class HttpUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpUtils.class);
     private static final String QUERY_REGEX = "(?<=%s=)([^&]*)";
     private static final String ENCODEING = Charsets.UTF_8.name();
+    private static final String USER_AGENT = "User-Agent";
+    private static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.77 Safari/535.7";
 
     public static String httpGet(String url) {
         return httpGet(url, new HashMap<String, String>());
@@ -315,6 +317,13 @@ public class HttpUtils {
     }
 
     private static void addHeaders(HttpRequestBase requestBase, Map<String, String> headerMap) {
+        String userAgent = DEFAULT_USER_AGENT;
+        if(headerMap != null && StringUtils.isNotBlank(headerMap.get(USER_AGENT))){
+            userAgent = headerMap.get(USER_AGENT);
+            headerMap.remove(USER_AGENT);
+        }
+        requestBase.addHeader(USER_AGENT, userAgent);
+
         if(headerMap != null){
             Iterator<Map.Entry<String, String>> entries = headerMap.entrySet().iterator();
             while (entries.hasNext()){
