@@ -58,6 +58,8 @@ public class HttpUtils {
     private static final String USER_AGENT = "User-Agent";
     private static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.77 Safari/535.7";
 
+    private HttpUtils(){}
+
     public static String httpGet(String url) {
         return httpGet(url, new HashMap<String, String>());
     }
@@ -229,12 +231,11 @@ public class HttpUtils {
                     }).build();
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext);
             RequestConfig requestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD_STRICT).build();
-            CloseableHttpClient httpClient = HttpClients.custom()
+            return HttpClients.custom()
                     .setDefaultCookieStore(cookieStore)
                     .setSSLSocketFactory(sslsf)
                     .setDefaultRequestConfig(requestConfig)
                     .build();
-            return httpClient;
         } catch (KeyManagementException e) {
             LOGGER.error("createSSLInsecureClient KeyManagementException", e);
         } catch (NoSuchAlgorithmException e) {

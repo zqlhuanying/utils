@@ -25,6 +25,8 @@ public class EncryptUtils {
                'c', 'd', 'e', 'f'
             };
 
+    private EncryptUtils(){}
+
     public static String sign(Map<String, String> signMap, String signKey) {
         Map<String, String> sortedMap = new TreeMap<>(Ordering.natural());
         sortedMap.putAll(signMap);

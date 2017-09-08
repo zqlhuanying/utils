@@ -17,8 +17,6 @@ import java.util.Map;
  */
 public final class DateUtils {
 
-    private DateUtils(){}
-
     private static final String STANDARD_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static Map<TimeUnitEnum, DurationFieldType> timeMap = new HashMap<>();
     static {
@@ -31,6 +29,8 @@ public final class DateUtils {
         timeMap.put(TimeUnitEnum.MONTH, DurationFieldType.months());
         timeMap.put(TimeUnitEnum.YEAR, DurationFieldType.years());
     }
+
+    private DateUtils(){}
 
     public static Date now(){
         return DateTime.now().toDate();
