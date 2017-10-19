@@ -8,14 +8,16 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
 /**
- * Created by qianliao.zhuang on 2017/7/8.
+ * @author qianliao.zhuang
  */
 public class CollectionUtils {
+
     private CollectionUtils(){}
 
     public static <F, T> Iterable<T> map(final Iterable<F> fromIterable, final Function<F, T> function) {
@@ -98,6 +100,14 @@ public class CollectionUtils {
                 return (T) input;
             }
         });
+    }
+
+    public static boolean isEmpty(Collection coll) {
+        return coll == null || coll.isEmpty();
+    }
+
+    public static boolean isNotEmpty(Collection coll) {
+        return !isEmpty(coll);
     }
 
     private static class SubIterator<T> extends AbstractIterator<T> {
