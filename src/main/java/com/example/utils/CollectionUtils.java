@@ -8,10 +8,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * @author qianliao.zhuang
@@ -108,6 +105,14 @@ public class CollectionUtils {
 
     public static boolean isNotEmpty(Collection coll) {
         return !isEmpty(coll);
+    }
+
+    public static <T> Iterable<T> safeNull(Iterable<T> iterable) {
+        return iterable == null ? Collections.<T>emptyList() : iterable;
+    }
+
+    public static <T> T getOrDefault(Iterable<T> iterable, int position, T defaultT) {
+        return Iterables.get(iterable, position, defaultT);
     }
 
     private static class SubIterator<T> extends AbstractIterator<T> {
