@@ -17,6 +17,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -24,12 +25,14 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLInitializationException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
@@ -55,7 +58,7 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Created by qianliao.zhuang on 2017/9/15.
+ * @author qianliao.zhuang
  */
 @Getter
 public final class HttpExecutors {
@@ -63,7 +66,7 @@ public final class HttpExecutors {
     private static final String ENCODEING = Charsets.UTF_8.name();
     private static final String QUERY_REGEX = "(?<=%s=)([^&]*)";
 
-    public static HttpExecutors.Builder create(){
+    public static HttpExecutors.Builder create() {
         return new Builder();
     }
 
@@ -72,16 +75,37 @@ public final class HttpExecutors {
     private final Map<String, String> params;
     private final String postBody;
     private final CookieStore cookies;
-    // 用于区分二进制、文件、图片等请求
+    /**
+     * 用于区分二进制、文件、图片等请求
+     */
     private final boolean isBinary;
     private final Map<String, File> binaryMap;
-    // 从连接池获取链接超时设置
+    /**
+     * 从连接池获取链接超时设置
+     */
     private final int connectionRequestTimeout;
-    // 与服务器建立链接超时设置
+    /**
+     * 与服务器建立链接超时设置
+     */
     private final int connectTimeout;
-    // 等待服务器返回数据超时设置
+    /**
+     * 等待服务器返回数据超时设置
+     */
     private final int socketTimeout;
+    /**
+     * 连接池最大连接数
+     */
+    private final int maxTotalConnections;
+    /**
+     * 每个路由最大连接数
+     */
+    private final int maxRouteConnections;
+    /**
+     * 连接保持时间(暂时未使用)
+     */
+    private final int keepAliveTimeout;
     private final boolean isHttps;
+    private ResponseHandler handler;
 
     private HttpClient httpClient;
 
@@ -96,7 +120,11 @@ public final class HttpExecutors {
             final int connectionRequestTimeout,
             final int connectTimeout,
             final int socketTimeout,
-            final boolean isHttps) {
+            final int maxTotalConnections,
+            final int maxRouteConnections,
+            final int keepAliveTimeout,
+            final boolean isHttps,
+            final ResponseHandler handler) {
         this.url = url;
         this.headers = headers;
         this.params = params;
@@ -107,11 +135,15 @@ public final class HttpExecutors {
         this.connectionRequestTimeout = connectionRequestTimeout;
         this.connectTimeout = connectTimeout;
         this.socketTimeout = socketTimeout;
+        this.maxTotalConnections = maxTotalConnections;
+        this.maxRouteConnections = maxRouteConnections;
+        this.keepAliveTimeout = keepAliveTimeout;
         this.isHttps = isHttps;
+        this.handler = handler;
         initHttpClient();
     }
 
-    public String httpGet(){
+    public String httpGet() {
         checkNotNull(url, "url must be not null");
 
         String realUrl = buildRealUrl(url, params);
@@ -125,7 +157,7 @@ public final class HttpExecutors {
         return doExecute(httpGet, context);
     }
 
-    public String httpPost(){
+    public String httpPost() {
         checkNotNull(url, "url must be not null");
 
         // http request
@@ -143,21 +175,21 @@ public final class HttpExecutors {
         httpClient = HttpClients.custom()
                 .setDefaultCookieStore(cookies)
                 .setSSLSocketFactory(buildSSLConnectionFactory())
+                .setConnectionManager(buildConnectionManager())
                 .setDefaultRequestConfig(buildRequestConfig())
                 .build();
     }
 
-
-    private SSLConnectionSocketFactory buildSSLConnectionFactory(){
+    private SSLConnectionSocketFactory buildSSLConnectionFactory() {
         SSLContext context = buildSSLContext();
-        if(context != null){
+        if (context != null) {
             return new SSLConnectionSocketFactory(context);
         }
         return null;
     }
 
     private SSLContext buildSSLContext() {
-        if(isHttps){
+        if (isHttps) {
             TrustStrategy trustStrategy = new TrustStrategy() {
                 @Override
                 public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
@@ -178,7 +210,14 @@ public final class HttpExecutors {
         return null;
     }
 
-    private RequestConfig buildRequestConfig(){
+    private HttpClientConnectionManager buildConnectionManager() {
+        PoolingHttpClientConnectionManager httpClientPool = new PoolingHttpClientConnectionManager();
+        httpClientPool.setMaxTotal(maxTotalConnections);
+        httpClientPool.setDefaultMaxPerRoute(maxRouteConnections);
+        return httpClientPool;
+    }
+
+    private RequestConfig buildRequestConfig() {
         return RequestConfig.custom()
                 .setConnectionRequestTimeout(connectionRequestTimeout)
                 .setConnectTimeout(connectTimeout)
@@ -187,29 +226,34 @@ public final class HttpExecutors {
                 .build();
     }
 
-    // just for get method
-    public static String buildRealUrl(String url, Map<String, String> params){
+    /**
+     * just for get method
+     * @param url
+     * @param params
+     * @return
+     */
+    public static String buildRealUrl(String url, Map<String, String> params) {
         checkNotNull(url, "url must be not null");
 
         String realUrl = url;
-        if(params != null && params.size() > 0){
+        if (params != null && params.size() > 0) {
             String queryString = buildQueryString(params);
             Joiner joiner = Joiner.on("?");
-            if(hasQueryString(url)){
+            if (hasQueryString(url)) {
                 joiner = Joiner.on("&");
             }
             realUrl = joiner.join(Lists.newArrayList(realUrl, queryString));
             // another example http://www.baidu.com?&key=value, so remove first &
             int index = realUrl.indexOf("?&");
-            if(index > 0){
+            if (index > 0) {
                 realUrl = realUrl.replaceFirst("&", "");
             }
         }
         return realUrl;
     }
 
-    public static String buildQueryString(final Map<String, String> params){
-        if(params == null){
+    public static String buildQueryString(final Map<String, String> params) {
+        if (params == null) {
             return "";
         }
         Map<String, String> tmp = Maps.toMap(params.keySet(), new Function<String, String>() {
@@ -225,20 +269,23 @@ public final class HttpExecutors {
     }
 
     private void addHeaders(HttpRequestBase requestBase, Map<String, String> headers) {
-        if(headers != null){
-            for (Map.Entry<String, String> entry : headers.entrySet()){
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
                 requestBase.addHeader(entry.getKey(), entry.getValue());
             }
         }
     }
 
-    // just for post method
-    private HttpEntity buildHttpEntity(){
+    /**
+     * just for post method
+     * @return
+     */
+    private HttpEntity buildHttpEntity() {
         HttpEntity httpEntity;
-        if(isBinary){
+        if (isBinary) {
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             // add binary body
-            if(binaryMap != null){
+            if (binaryMap != null) {
                 for (Map.Entry<String, File> entry : binaryMap.entrySet()) {
                     builder.addBinaryBody(
                             entry.getKey(),
@@ -248,8 +295,8 @@ public final class HttpExecutors {
                 }
             }
             // add other params
-            if(params != null){
-                for (Map.Entry<String, String> entry : params.entrySet()){
+            if (params != null) {
+                for (Map.Entry<String, String> entry : params.entrySet()) {
                     builder.addTextBody(entry.getKey(), entry.getValue());
                 }
             }
@@ -263,24 +310,9 @@ public final class HttpExecutors {
         return httpEntity;
     }
 
-    private String doExecute(HttpUriRequest request, HttpContext context){
+    private String doExecute(HttpUriRequest request, HttpContext context) {
         try {
-            HttpResponse response = httpClient.execute(request, context);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != HttpStatus.SC_OK) {
-                LOGGER.warn("statusCode: {}, statusMsg: {}",
-                        statusCode, response.getStatusLine().getReasonPhrase());
-                return "";
-            }
-            HttpEntity entity = response.getEntity();
-            if (entity == null) {
-                LOGGER.warn("no result return");
-                return "";
-            }
-
-            String result = EntityUtils.toString(entity, ENCODEING);
-            EntityUtils.consume(entity);
-            return result;
+            return (String) httpClient.execute(request, handler, context);
         } catch (ClientProtocolException e) {
             LOGGER.error("httpGet ClientProtocolException", e);
         } catch (IOException e) {
@@ -305,8 +337,8 @@ public final class HttpExecutors {
         return input;
     }
 
-    private static boolean hasQueryString(String url){
-        if(StringUtils.isBlank(url)){
+    private static boolean hasQueryString(String url) {
+        if (StringUtils.isBlank(url)) {
             return false;
         }
         List<String> split = Splitter.on('?').splitToList(url);
@@ -315,11 +347,12 @@ public final class HttpExecutors {
 
     /**
      * 从 url 的查询字符串中获取待查询的 query 值
-     * @param url: Target url
+     *
+     * @param url:   Target url
      * @param query: The query
      * @return
      */
-    public static String getQueryValue(String url, String query){
+    public static String getQueryValue(String url, String query) {
         String regex = String.format(QUERY_REGEX, query);
         return filterByPattern(regex, url);
     }
@@ -335,11 +368,31 @@ public final class HttpExecutors {
         return "";
     }
 
+    private static class DefaultResponseHandler implements ResponseHandler{
+        @Override
+        public Object handleResponse(HttpResponse response) throws ClientProtocolException, IOException{
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != HttpStatus.SC_OK) {
+                LOGGER.warn("statusCode: {}, statusMsg: {}",
+                        statusCode, response.getStatusLine().getReasonPhrase());
+                return "";
+            }
+            HttpEntity entity = response.getEntity();
+            if (entity == null) {
+                LOGGER.warn("no result return");
+                return "";
+            }
 
+            String result = EntityUtils.toString(entity, ENCODEING);
+            // ensure consume
+            EntityUtils.consume(entity);
+            return result;
+        }
+    }
 
     @Setter
     @Accessors(chain = true)
-    public static class Builder{
+    public static class Builder {
         private String url;
         private Map<String, String> headers;
         private Map<String, String> params;
@@ -350,9 +403,13 @@ public final class HttpExecutors {
         private int connectionRequestTimeout;
         private int connectTimeout;
         private int socketTimeout;
+        private int maxTotalConnections;
+        private int maxRouteConnections;
+        private int keepAliveTimeout;
         private boolean isHttps;
+        private ResponseHandler handler;
 
-        Builder(){
+        Builder() {
             super();
             this.headers = null;
             this.params = null;
@@ -363,10 +420,14 @@ public final class HttpExecutors {
             this.connectionRequestTimeout = -1;
             this.connectTimeout = -1;
             this.socketTimeout = -1;
+            this.maxTotalConnections = 20;
+            this.maxRouteConnections = 2;
+            this.keepAliveTimeout = -1;
             this.isHttps = false;
+            this.handler = new DefaultResponseHandler();
         }
 
-        public HttpExecutors build(){
+        public HttpExecutors build() {
             return new HttpExecutors(
                     url,
                     headers,
@@ -378,7 +439,11 @@ public final class HttpExecutors {
                     connectionRequestTimeout,
                     connectTimeout,
                     socketTimeout,
-                    isHttps
+                    maxTotalConnections,
+                    maxRouteConnections,
+                    keepAliveTimeout,
+                    isHttps,
+                    handler
             );
         }
     }
