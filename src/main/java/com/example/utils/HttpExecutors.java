@@ -25,14 +25,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLInitializationException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
@@ -65,6 +63,8 @@ public final class HttpExecutors {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpExecutors.class);
     private static final String ENCODEING = Charsets.UTF_8.name();
     private static final String QUERY_REGEX = "(?<=%s=)([^&]*)";
+    private static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 20;
+    private static final int DEFAULT_MAX_ROUTE_CONNECTIONS = 2;
 
     public static HttpExecutors.Builder create() {
         return new Builder();
@@ -100,10 +100,6 @@ public final class HttpExecutors {
      * 每个路由最大连接数
      */
     private final int maxRouteConnections;
-    /**
-     * 连接保持时间(暂时未使用)
-     */
-    private final int keepAliveTimeout;
     private final boolean isHttps;
     private ResponseHandler handler;
 
@@ -122,7 +118,6 @@ public final class HttpExecutors {
             final int socketTimeout,
             final int maxTotalConnections,
             final int maxRouteConnections,
-            final int keepAliveTimeout,
             final boolean isHttps,
             final ResponseHandler handler) {
         this.url = url;
@@ -137,7 +132,6 @@ public final class HttpExecutors {
         this.socketTimeout = socketTimeout;
         this.maxTotalConnections = maxTotalConnections;
         this.maxRouteConnections = maxRouteConnections;
-        this.keepAliveTimeout = keepAliveTimeout;
         this.isHttps = isHttps;
         this.handler = handler;
         initHttpClient();
@@ -171,12 +165,17 @@ public final class HttpExecutors {
         return doExecute(httpPost, context);
     }
 
+    /**
+     * 使用 HttpClient 时，默认使用了 PoolingHttpClientConnectionManager
+     * 因此只要设置相应的参数（maxConnTotal、maxConnPerRoute）即可
+     */
     private void initHttpClient() {
         httpClient = HttpClients.custom()
                 .setDefaultCookieStore(cookies)
                 .setSSLSocketFactory(buildSSLConnectionFactory())
-                .setConnectionManager(buildConnectionManager())
                 .setDefaultRequestConfig(buildRequestConfig())
+                .setMaxConnTotal(maxTotalConnections)
+                .setMaxConnPerRoute(maxRouteConnections)
                 .build();
     }
 
@@ -208,13 +207,6 @@ public final class HttpExecutors {
             }
         }
         return null;
-    }
-
-    private HttpClientConnectionManager buildConnectionManager() {
-        PoolingHttpClientConnectionManager httpClientPool = new PoolingHttpClientConnectionManager();
-        httpClientPool.setMaxTotal(maxTotalConnections);
-        httpClientPool.setDefaultMaxPerRoute(maxRouteConnections);
-        return httpClientPool;
     }
 
     private RequestConfig buildRequestConfig() {
@@ -405,7 +397,6 @@ public final class HttpExecutors {
         private int socketTimeout;
         private int maxTotalConnections;
         private int maxRouteConnections;
-        private int keepAliveTimeout;
         private boolean isHttps;
         private ResponseHandler handler;
 
@@ -420,9 +411,8 @@ public final class HttpExecutors {
             this.connectionRequestTimeout = -1;
             this.connectTimeout = -1;
             this.socketTimeout = -1;
-            this.maxTotalConnections = 20;
-            this.maxRouteConnections = 2;
-            this.keepAliveTimeout = -1;
+            this.maxTotalConnections = DEFAULT_MAX_TOTAL_CONNECTIONS;
+            this.maxRouteConnections = DEFAULT_MAX_ROUTE_CONNECTIONS;
             this.isHttps = false;
             this.handler = new DefaultResponseHandler();
         }
@@ -441,7 +431,6 @@ public final class HttpExecutors {
                     socketTimeout,
                     maxTotalConnections,
                     maxRouteConnections,
-                    keepAliveTimeout,
                     isHttps,
                     handler
             );
