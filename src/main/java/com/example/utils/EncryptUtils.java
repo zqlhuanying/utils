@@ -2,15 +2,18 @@ package com.example.utils;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Ordering;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.TreeMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author qianliao.zhuang
@@ -26,6 +29,8 @@ public class EncryptUtils {
                     'c', 'd', 'e', 'f'
             };
     private static final String ENCODING = "UTF-8";
+    private static final BASE64Encoder BASE64ENCODER = new BASE64Encoder();
+    private static final BASE64Decoder BASE64DECODER = new BASE64Decoder();
 
     private EncryptUtils() {
     }
@@ -70,20 +75,39 @@ public class EncryptUtils {
         return bytes == null ? null : base64Encode(bytes);
     }
 
-    public static String base64Decode(String str) {
+    public static String base64Encode(byte[] bytes) {
+        return BASE64ENCODER.encodeBuffer(bytes).trim();
+    }
+
+    public static byte[] base64Decode(String str) {
         if (str == null) {
             return null;
         }
-        byte[] bytes = getBytes(str);
-        return bytes == null ? null : base64Decode(bytes);
+        try {
+            return BASE64DECODER.decodeBuffer(str);
+        } catch (IOException e) {
+            LOGGER.error("BASE64解码失败，字符串为：{}", str, e);
+            return null;
+        }
     }
 
-    public static String base64Decode(byte[] bytes) {
-        return new String(Base64.decodeBase64(bytes));
+    public static byte[] base64Decode(InputStream inputStream) {
+        if (inputStream == null) {
+            return null;
+        }
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        base64Decode(inputStream, outputStream);
+        return outputStream.toByteArray();
     }
 
-    public static String base64Encode(byte[] bytes) {
-        return new String(Base64.encodeBase64(bytes));
+    public static void base64Decode(InputStream inputStream, OutputStream outputStream) {
+        checkNotNull(inputStream, "inputStream must be not null");
+
+        try {
+            BASE64DECODER.decodeBuffer(inputStream, outputStream);
+        } catch (IOException e) {
+            LOGGER.error("BASE64解码失败", e);
+        }
     }
 
     private static String bytesToHex(byte[] bytes) {

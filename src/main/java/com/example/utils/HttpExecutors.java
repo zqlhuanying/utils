@@ -65,6 +65,12 @@ public final class HttpExecutors {
     private static final String QUERY_REGEX = "(?<=%s=)([^&]*)";
     private static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 20;
     private static final int DEFAULT_MAX_ROUTE_CONNECTIONS = 2;
+    private static final ContentType MULTIPART_FORM_DATA = ContentType.create(
+            "multipart/form-data", ENCODEING);
+    public static final ContentType APPLICATION_JSON = ContentType.create(
+            "application/json", ENCODEING);
+    public static final ContentType APPLICATION_FORM_URLENCODED = ContentType.create(
+            "application/x-www-form-urlencoded", ENCODEING);
 
     public static HttpExecutors.Builder create() {
         return new Builder();
@@ -214,7 +220,7 @@ public final class HttpExecutors {
                 .setConnectionRequestTimeout(connectionRequestTimeout)
                 .setConnectTimeout(connectTimeout)
                 .setSocketTimeout(socketTimeout)
-                .setCookieSpec(CookieSpecs.STANDARD_STRICT)
+                //.setCookieSpec(CookieSpecs.STANDARD_STRICT)
                 .build();
     }
 
@@ -282,7 +288,7 @@ public final class HttpExecutors {
                     builder.addBinaryBody(
                             entry.getKey(),
                             entry.getValue(),
-                            ContentType.MULTIPART_FORM_DATA,
+                            MULTIPART_FORM_DATA,
                             entry.getValue().getName());
                 }
             }
@@ -295,8 +301,10 @@ public final class HttpExecutors {
             httpEntity = builder.build();
         } else {
             String body = StringUtils.isBlank(postBody) ? buildQueryString(params) : postBody;
+            ContentType contentType = StringUtils.isBlank(postBody) ? APPLICATION_FORM_URLENCODED : APPLICATION_JSON;
             StringEntity stringEntity = new StringEntity(body, ENCODEING);
             stringEntity.setContentEncoding(ENCODEING);
+            stringEntity.setContentType(contentType.getMimeType());
             httpEntity = stringEntity;
         }
         return httpEntity;
