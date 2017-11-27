@@ -13,7 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Created by qianliao.zhuang on 2017/5/31.
+ * @author qianliao.zhuang
  */
 public final class DateUtils {
 

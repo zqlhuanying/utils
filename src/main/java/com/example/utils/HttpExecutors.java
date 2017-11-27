@@ -72,10 +72,6 @@ public final class HttpExecutors {
     public static final ContentType APPLICATION_FORM_URLENCODED = ContentType.create(
             "application/x-www-form-urlencoded", ENCODEING);
 
-    public static HttpExecutors.Builder create() {
-        return new Builder();
-    }
-
     private final String url;
     private final Map<String, String> headers;
     private final Map<String, String> params;
@@ -141,6 +137,10 @@ public final class HttpExecutors {
         this.isHttps = isHttps;
         this.handler = handler;
         initHttpClient();
+    }
+
+    public static HttpExecutors.Builder create() {
+        return new Builder();
     }
 
     public String httpGet() {
