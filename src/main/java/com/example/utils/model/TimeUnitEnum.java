@@ -1,7 +1,7 @@
 package com.example.utils.model;
 
 /**
- * Created by qianliao.zhuang on 2017/6/1.
+ * @author qianliao.zhuang
  */
 public enum TimeUnitEnum {
     MILLI(0),
@@ -21,9 +21,5 @@ public enum TimeUnitEnum {
 
     public int getUnit() {
         return unit;
-    }
-
-    public void setUnit(int unit) {
-        this.unit = unit;
     }
 }
