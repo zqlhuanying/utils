@@ -112,7 +112,7 @@ public class CollectionUtils {
     }
 
     public static <T> T getOrDefault(Iterable<T> iterable, int position, T defaultT) {
-        return Iterables.get(iterable, position, defaultT);
+        return Iterables.get(safeNull(iterable), position, defaultT);
     }
 
     private static class SubIterator<T> extends AbstractIterator<T> {
