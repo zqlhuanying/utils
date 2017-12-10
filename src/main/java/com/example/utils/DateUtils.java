@@ -87,7 +87,7 @@ public final class DateUtils {
     }
 
     public static int compare(Date lDate, Date rDate){
-        return DateTimeComparator.getDateOnlyInstance().compare(lDate, rDate);
+        return DateTimeComparator.getInstance().compare(lDate, rDate);
     }
 
     public static long getMills(){
