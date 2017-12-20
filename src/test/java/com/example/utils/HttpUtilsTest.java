@@ -17,8 +17,7 @@ public class HttpUtilsTest {
     public void httpGetExecutorsTest(){
         String url = "http://www.baidu.com";
         System.out.println(
-                HttpExecutors.create()
-                        .setUrl(url)
+                HttpExecutors.create(url)
                         .build()
                         .httpGet()
         );

@@ -128,6 +128,10 @@ public final class HttpExecutors {
         return new Builder();
     }
 
+    public static HttpExecutors.Builder create(String url) {
+        return new Builder().setUrl(url);
+    }
+
     public String httpGet() {
         checkNotNull(url, "url must be not null");
 
