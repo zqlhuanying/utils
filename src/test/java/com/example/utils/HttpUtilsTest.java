@@ -12,4 +12,15 @@ public class HttpUtilsTest {
         String url = "http://www.baidu.com";
         System.out.println(HttpUtils.httpGet(url));
     }
+
+    @Test
+    public void httpGetExecutorsTest(){
+        String url = "http://www.baidu.com";
+        System.out.println(
+                HttpExecutors.create()
+                        .setUrl(url)
+                        .build()
+                        .httpGet()
+        );
+    }
 }

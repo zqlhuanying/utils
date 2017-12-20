@@ -18,7 +18,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -107,35 +106,21 @@ public final class HttpExecutors {
 
     private HttpClient httpClient;
 
-    private HttpExecutors(
-            final String url,
-            final Map<String, String> headers,
-            final Map<String, String> params,
-            final String postBody,
-            final CookieStore cookies,
-            final boolean isBinary,
-            final Map<String, File> binaryMap,
-            final int connectionRequestTimeout,
-            final int connectTimeout,
-            final int socketTimeout,
-            final int maxTotalConnections,
-            final int maxRouteConnections,
-            final boolean isHttps,
-            final ResponseHandler handler) {
-        this.url = url;
-        this.headers = headers;
-        this.params = params;
-        this.postBody = postBody;
-        this.cookies = cookies;
-        this.isBinary = isBinary;
-        this.binaryMap = binaryMap;
-        this.connectionRequestTimeout = connectionRequestTimeout;
-        this.connectTimeout = connectTimeout;
-        this.socketTimeout = socketTimeout;
-        this.maxTotalConnections = maxTotalConnections;
-        this.maxRouteConnections = maxRouteConnections;
-        this.isHttps = isHttps;
-        this.handler = handler;
+    private HttpExecutors(Builder builder) {
+        this.url = builder.url;
+        this.headers = builder.headers;
+        this.params = builder.params;
+        this.postBody = builder.postBody;
+        this.cookies = builder.cookies;
+        this.isBinary = builder.isBinary;
+        this.binaryMap = builder.binaryMap;
+        this.connectionRequestTimeout = builder.connectionRequestTimeout;
+        this.connectTimeout = builder.connectTimeout;
+        this.socketTimeout = builder.socketTimeout;
+        this.maxTotalConnections = builder.maxTotalConnections;
+        this.maxRouteConnections = builder.maxRouteConnections;
+        this.isHttps = builder.isHttps;
+        this.handler = builder.handler;
         initHttpClient();
     }
 
@@ -426,22 +411,7 @@ public final class HttpExecutors {
         }
 
         public HttpExecutors build() {
-            return new HttpExecutors(
-                    url,
-                    headers,
-                    params,
-                    postBody,
-                    cookies,
-                    isBinary,
-                    binaryMap,
-                    connectionRequestTimeout,
-                    connectTimeout,
-                    socketTimeout,
-                    maxTotalConnections,
-                    maxRouteConnections,
-                    isHttps,
-                    handler
-            );
+            return new HttpExecutors(this);
         }
     }
 }
