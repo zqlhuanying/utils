@@ -1,6 +1,5 @@
 package com.example.utils;
 
-import com.example.utils.model.TimeUnitEnum;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
 import org.joda.time.DurationFieldType;
@@ -8,9 +7,7 @@ import org.joda.time.Instant;
 import org.joda.time.format.DateTimeFormat;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * @author qianliao.zhuang
@@ -18,17 +15,6 @@ import java.util.Map;
 public final class DateUtils {
 
     private static final String STANDARD_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    private static Map<TimeUnitEnum, DurationFieldType> timeMap = new HashMap<>();
-    static {
-        timeMap.put(TimeUnitEnum.MILLI, DurationFieldType.millis());
-        timeMap.put(TimeUnitEnum.SECOND, DurationFieldType.seconds());
-        timeMap.put(TimeUnitEnum.MINUTE, DurationFieldType.minutes());
-        timeMap.put(TimeUnitEnum.HOUR, DurationFieldType.hours());
-        timeMap.put(TimeUnitEnum.DAY, DurationFieldType.days());
-        timeMap.put(TimeUnitEnum.WEEK, DurationFieldType.weeks());
-        timeMap.put(TimeUnitEnum.MONTH, DurationFieldType.months());
-        timeMap.put(TimeUnitEnum.YEAR, DurationFieldType.years());
-    }
 
     private DateUtils(){}
 
@@ -36,46 +22,77 @@ public final class DateUtils {
         return DateTime.now().toDate();
     }
 
+    public static Date plusMills(Date date, int interval) {
+        return plus(date, interval, DurationFieldType.millis());
+    }
+
+    public static Date plusSeconds(Date date, int interval) {
+        return plus(date, interval, DurationFieldType.seconds());
+    }
+
+    public static Date plusMinutes(Date date, int interval) {
+        return plus(date, interval, DurationFieldType.minutes());
+    }
+
+    public static Date plusHours(Date date, int interval) {
+        return plus(date, interval, DurationFieldType.hours());
+    }
+
     public static Date plusDays(Date date, int interval) {
-        return plus(date, interval, TimeUnitEnum.DAY);
+        return plus(date, interval, DurationFieldType.days());
     }
 
     public static Date plusWeeks(Date date, int interval) {
-        return plus(date, interval, TimeUnitEnum.WEEK);
+        return plus(date, interval, DurationFieldType.weeks());
     }
 
     public static Date plusMonths(Date date, int interval) {
-        return plus(date, interval, TimeUnitEnum.MONTH);
+        return plus(date, interval, DurationFieldType.months());
     }
 
     public static Date plusYears(Date date, int interval) {
-        return plus(date, interval, TimeUnitEnum.YEAR);
+        return plus(date, interval, DurationFieldType.years());
     }
 
-    public static Date minus(Date date, int interval, TimeUnitEnum unit){
-        return plus(date, interval * -1, unit);
+    public static Date minusMills(Date date, int interval) {
+        return minus(date, interval, DurationFieldType.millis());
     }
 
+    public static Date minusSeconds(Date date, int interval) {
+        return minus(date, interval, DurationFieldType.seconds());
+    }
+
+    public static Date minusMinutes(Date date, int interval) {
+        return minus(date, interval, DurationFieldType.minutes());
+    }
+
+    public static Date minusHours(Date date, int interval) {
+        return minus(date, interval, DurationFieldType.hours());
+    }
     public static Date minusDays(Date date, int interval) {
-        return plusDays(date, interval * -1);
+        return minus(date, interval, DurationFieldType.days());
     }
 
     public static Date minusWeeks(Date date, int interval) {
-        return plusWeeks(date, interval * -1);
+        return minus(date, interval, DurationFieldType.weeks());
     }
 
     public static Date minusMonths(Date date, int interval) {
-        return plusMonths(date, interval * -1);
+        return minus(date, interval, DurationFieldType.months());
     }
 
     public static Date minusYears(Date date, int interval) {
-        return plusYears(date, interval * -1);
+        return minus(date, interval, DurationFieldType.years());
     }
 
-    public static Date plus(Date date, int interval, TimeUnitEnum unit){
+    private static Date plus(Date date, int interval, DurationFieldType unit){
         return toDateTime(date)
-                .withFieldAdded(timeMap.get(unit), interval)
+                .withFieldAdded(unit, interval)
                 .toDate();
+    }
+
+    private static Date minus(Date date, int interval, DurationFieldType unit){
+        return plus(date, interval * -1, unit);
     }
 
     public static Date max(Date lDate, Date rDate){
@@ -106,7 +123,7 @@ public final class DateUtils {
      * @param unit
      * @return
      */
-    public static long getMills(int interval, TimeUnitEnum unit){
+    public static long getMills(int interval, DurationFieldType unit){
         Date now = now();
         return getMills(plus(now, interval, unit)) - getMills(now);
     }
@@ -168,5 +185,4 @@ public final class DateUtils {
     public static DateTime toDateTime(Date date){
         return new DateTime(date);
     }
-
 }
