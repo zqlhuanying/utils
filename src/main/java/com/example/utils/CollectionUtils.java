@@ -15,7 +15,8 @@ import java.util.*;
  */
 public class CollectionUtils {
 
-    private CollectionUtils(){}
+    private CollectionUtils() {
+    }
 
     public static <F, T> Iterable<T> map(final Iterable<F> fromIterable, final Function<F, T> function) {
         return FluentIterable
@@ -27,7 +28,7 @@ public class CollectionUtils {
         return toList(map(list, function));
     }
 
-    public static <T> List<T> toList(final Iterable<T> iterable){
+    public static <T> List<T> toList(final Iterable<T> iterable) {
         return Lists.newArrayList(iterable);
     }
 
@@ -41,7 +42,7 @@ public class CollectionUtils {
                 .filter(predicate);
     }
 
-    public static <T> List<List<T>> subListCycle(final List<T> list, final int limitSize){
+    public static <T> List<List<T>> subListCycle(final List<T> list, final int limitSize) {
         return toList(
                 new FluentIterable<List<T>>() {
                     @Override
@@ -52,13 +53,13 @@ public class CollectionUtils {
         );
     }
 
-    public static <T> List<T> subList(final List<T> list, final int offset, final int limitSize){
+    public static <T> List<T> subList(final List<T> list, final int offset, final int limitSize) {
         return toList(
                 sub(list, offset, limitSize)
         );
     }
 
-    public static <T> Iterable<Iterable<T>> subCycle(final Iterable<T> iterable, final int limitSize){
+    public static <T> Iterable<Iterable<T>> subCycle(final Iterable<T> iterable, final int limitSize) {
         return new FluentIterable<Iterable<T>>() {
             @Override
             public Iterator<Iterable<T>> iterator() {
@@ -67,25 +68,25 @@ public class CollectionUtils {
         };
     }
 
-    public static <T> Iterable<T> sub(final Iterable<T> iterable, final int offset, final int limitSize){
+    public static <T> Iterable<T> sub(final Iterable<T> iterable, final int offset, final int limitSize) {
         return FluentIterable
                 .from(iterable)
                 .skip(offset)
                 .limit(limitSize);
     }
 
-    public static <T> Iterable<List<T>> partition(final Iterable<T> iterable, final int size){
+    public static <T> Iterable<List<T>> partition(final Iterable<T> iterable, final int size) {
         return FluentIterable
                 .from(Iterables.partition(iterable, size));
     }
 
-    public static <F, T> Iterable<T> flatten(final Iterable<F>... flattenIterable){
+    public static <F, T> Iterable<T> flatten(final Iterable<F>... flattenIterable) {
         return flatten(Iterables.concat(flattenIterable));
     }
 
     @SuppressWarnings("unchecked")
-    public static <F, T> Iterable<T> flatten(final Iterable<F> flattenIterable){
-        Iterable<F> iterable = new FluentIterable<F>(){
+    public static <F, T> Iterable<T> flatten(final Iterable<F> flattenIterable) {
+        Iterable<F> iterable = new FluentIterable<F>() {
             @Override
             public Iterator<F> iterator() {
                 return new FlattenIterator<>(flattenIterable.iterator());
@@ -108,7 +109,14 @@ public class CollectionUtils {
     }
 
     public static <T> Iterable<T> safeNull(Iterable<T> iterable) {
-        return iterable == null ? Collections.<T>emptyList() : iterable;
+        return iterable != null ?
+                iterable :
+                new FluentIterable<T>() {
+                    @Override
+                    public Iterator<T> iterator() {
+                        return Collections.emptyIterator();
+                    }
+                };
     }
 
     public static <T> T getOrDefault(Iterable<T> iterable, int position, T defaultT) {
@@ -129,7 +137,7 @@ public class CollectionUtils {
         @Override
         protected T computeNext() {
             Iterable sub = sub(iterable, index, perSize);
-            if(sub.iterator().hasNext()){
+            if (sub.iterator().hasNext()) {
                 index += perSize;
                 return (T) sub;
             }
@@ -137,7 +145,7 @@ public class CollectionUtils {
         }
     }
 
-    private static class FlattenIterator<T> extends AbstractIterator<T>{
+    private static class FlattenIterator<T> extends AbstractIterator<T> {
         private Stack<Iterator> stack = new Stack<>();
 
         public FlattenIterator(Iterator<T> iterator) {
@@ -146,11 +154,11 @@ public class CollectionUtils {
 
         @Override
         protected T computeNext() {
-            while (!stack.isEmpty()){
+            while (!stack.isEmpty()) {
                 Iterator<T> it = stack.peek();
-                if(it.hasNext()){
+                if (it.hasNext()) {
                     T result = it.next();
-                    if(result instanceof Iterable){
+                    if (result instanceof Iterable) {
                         stack.add(((Iterable) result).iterator());
                         result = computeNext();
                     }
