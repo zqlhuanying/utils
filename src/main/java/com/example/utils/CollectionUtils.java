@@ -42,17 +42,6 @@ public class CollectionUtils {
                 .filter(predicate);
     }
 
-    public static <T> List<List<T>> subListCycle(final List<T> list, final int limitSize) {
-        return toList(
-                new FluentIterable<List<T>>() {
-                    @Override
-                    public Iterator<List<T>> iterator() {
-                        return new SubIterator<>(list, limitSize);
-                    }
-                }
-        );
-    }
-
     public static <T> List<T> subList(final List<T> list, final int offset, final int limitSize) {
         return toList(
                 sub(list, offset, limitSize)
@@ -123,23 +112,23 @@ public class CollectionUtils {
         return Iterables.get(safeNull(iterable), position, defaultT);
     }
 
-    private static class SubIterator<T> extends AbstractIterator<T> {
-        private Iterable iterable;
-        private int perSize;
+    private static class SubIterator<T> extends AbstractIterator<Iterable<T>> {
+        private final Iterable<T> iterable;
+        private final int perSize;
         private int index;
 
-        public SubIterator(Iterable iterable, int perSize) {
+        SubIterator(Iterable<T> iterable, int perSize) {
             this.iterable = iterable;
             this.perSize = perSize;
             this.index = 0;
         }
 
         @Override
-        protected T computeNext() {
-            Iterable sub = sub(iterable, index, perSize);
+        protected Iterable<T> computeNext() {
+            Iterable<T> sub = sub(iterable, index, perSize);
             if (sub.iterator().hasNext()) {
                 index += perSize;
-                return (T) sub;
+                return sub;
             }
             return endOfData();
         }
@@ -148,7 +137,7 @@ public class CollectionUtils {
     private static class FlattenIterator<T> extends AbstractIterator<T> {
         private Stack<Iterator> stack = new Stack<>();
 
-        public FlattenIterator(Iterator<T> iterator) {
+        FlattenIterator(Iterator<T> iterator) {
             stack.add(iterator);
         }
 
