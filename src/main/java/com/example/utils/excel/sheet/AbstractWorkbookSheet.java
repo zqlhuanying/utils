@@ -1,5 +1,6 @@
 package com.example.utils.excel.sheet;
 
+import com.example.utils.CollectionUtil;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -62,10 +63,7 @@ public abstract class AbstractWorkbookSheet<T> {
     }
 
     protected static boolean ignoreField(String field, List<String> ignores) {
-        if (CollectionUtil.isEmpty(ignores)) {
-            return false;
-        }
-        return ignores.contains(field);
+        return CollectionUtil.isNotEmpty(ignores) && ignores.contains(field);
     }
 
     private static boolean isGetter(String methodName) {

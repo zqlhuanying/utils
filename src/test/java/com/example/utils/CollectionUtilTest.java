@@ -6,12 +6,12 @@ import org.junit.Test;
 
 import java.util.*;
 
-import static com.example.utils.CollectionUtils.*;
+import static com.example.utils.CollectionUtil.*;
 
 /**
  * Created by qianliao.zhuang on 2017/7/11.
  */
-public class CollectionUtilsTest {
+public class CollectionUtilTest {
     private static List<Object> list;
     private static List<Object> list1;
     private static List<Object> nullList;

@@ -13,9 +13,9 @@ import java.util.*;
 /**
  * @author qianliao.zhuang
  */
-public class CollectionUtils {
+public class CollectionUtil {
 
-    private CollectionUtils() {
+    private CollectionUtil() {
     }
 
     public static <F, T> Iterable<T> map(final Iterable<F> fromIterable, final Function<F, T> function) {
