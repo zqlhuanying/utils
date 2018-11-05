@@ -39,7 +39,6 @@ public enum PoiExcelType {
 
         @Override
         public Workbook createWorkbook() {
-/*            return new SXSSFWorkbook(1000);*/
             return new XSSFWorkbook();
         }
     };

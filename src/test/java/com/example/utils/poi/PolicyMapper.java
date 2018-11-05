@@ -7,7 +7,7 @@ import com.example.utils.excel.mapper.Mappers;
 /**
  * @author zhuangqianliao
  */
-public class PolicyMapper extends Mapper<PolicyVO> {
+public class PolicyMapper extends Mapper<Policy> {
 
     public static void init() {
         Mappers.registry(new PolicyMapper(0, "文件编号", "policyCode"));
@@ -68,6 +68,6 @@ public class PolicyMapper extends Mapper<PolicyVO> {
     }
 
     public PolicyMapper(int columnIndex, String columnName, String fieldName) {
-        super(columnIndex, columnName, fieldName, PolicyVO.class);
+        super(columnIndex, columnName, fieldName, Policy.class);
     }
 }
