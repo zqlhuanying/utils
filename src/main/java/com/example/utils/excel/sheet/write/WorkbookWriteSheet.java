@@ -1,6 +1,5 @@
 package com.example.utils.excel.sheet.write;
 
-import com.alibaba.fastjson.JSONObject;
 import com.example.utils.DateUtils;
 import com.example.utils.excel.mapper.Mapper;
 import com.example.utils.excel.mapper.Mappers;
@@ -11,10 +10,7 @@ import com.example.utils.excel.sheet.AbstractWorkbookSheet;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 
 import java.lang.reflect.Field;
 
@@ -27,17 +23,20 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class WorkbookWriteSheet<T> extends AbstractWorkbookSheet<T> {
 
     private static final DataFormatter STRING_FORMATTER = new DataFormatter();
-    final AbstractWorkbookWriter<T> writer;
-    final PoiOptions options;
+    protected final AbstractWorkbookWriter<T> writer;
+    protected final PoiOptions options;
 
-    public WorkbookWriteSheet(AbstractWorkbookWriter<T> writer, Sheet sheet, PoiOptions options) {
+    public WorkbookWriteSheet(AbstractWorkbookWriter<T> writer,
+                              Workbook workbook, Sheet sheet, PoiOptions options) {
         this.writer = writer;
+        this.workbook = workbook;
         this.sheet = sheet;
         this.options = options;
     }
 
+    @Deprecated
     protected WorkbookWriteSheet(Sheet sheet, PoiOptions options) {
-        this(null, sheet, options);
+        this(null, null, sheet, options);
     }
 
     /**
@@ -47,10 +46,6 @@ public class WorkbookWriteSheet<T> extends AbstractWorkbookSheet<T> {
      */
     protected void write(final Iterable<T> values, final Class clazz) {
         if (!Iterables.isEmpty(values)) {
-            long start = System.currentTimeMillis();
-            allocate(Iterables.size(values) + 1);
-            long end = System.currentTimeMillis();
-            System.out.println("预先分配耗时: " + (end - start));
             writeHeader(clazz);
             long start1 = System.currentTimeMillis();
             writeContent(values);
@@ -61,7 +56,7 @@ public class WorkbookWriteSheet<T> extends AbstractWorkbookSheet<T> {
 
     protected void writeHeader(final Class clazz) {
         int skip = this.options.getSkip();
-        createHeader(clazz, sheet.getRow(skip));
+        createHeader(clazz, sheet.createRow(skip));
     }
 
     protected void writeContent(final Iterable<T> values) {
@@ -71,7 +66,13 @@ public class WorkbookWriteSheet<T> extends AbstractWorkbookSheet<T> {
     }
 
     public WorkbookWriteSheet<T> bigSheet() {
-        return new WorkbookBigWriteSheet<>(this.writer, this.sheet, this.options);
+        return new WorkbookBigWriteSheet<>(this.writer,
+                this.workbook, this.sheet, this.options);
+    }
+
+    public WorkbookStreamWriteSheet<T> streamSheet() {
+        return new WorkbookStreamWriteSheet<>(this.writer,
+                this.workbook, this.sheet, this.options);
     }
 
     public AbstractWorkbookWriter<T> getWriter() {
@@ -94,21 +95,9 @@ public class WorkbookWriteSheet<T> extends AbstractWorkbookSheet<T> {
 
         int _startRow = startRow;
         Iterable<T> iterable = FluentIterable.from(values).skip(start).limit(end - start + 1);
-        long start1 = System.currentTimeMillis();
         for (T value : iterable) {
-            doConvert(value, sheet.getRow(_startRow));
+            doConvert(value, sheet.createRow(_startRow));
             _startRow++;
-        }
-        long end1 = System.currentTimeMillis();
-        //System.out.println("start: " + start + " end: " + end + "耗时：" + (end1 - start1));
-    }
-
-    private void allocate(int size) {
-        // 预先分配空间
-        // createRow 不是线程安全的
-        int skip = this.options.getSkip();
-        for (int i = 0; i < size; i++) {
-            this.sheet.createRow(i + skip);
         }
     }
 
@@ -135,14 +124,13 @@ public class WorkbookWriteSheet<T> extends AbstractWorkbookSheet<T> {
             String cellValue = getFromInstance(instance, mapper);
             long end = System.currentTimeMillis();
             if (end - start > 10) {
-                System.out.println("反射耗时: " + (end - start));
+                System.out.println(DateUtils.now() + " 反射耗时: " + (end - start));
             }
 
             long start1 = System.currentTimeMillis();
             Cell cell = row.createCell(mapper.getColumnIndex());
             long end1 = System.currentTimeMillis();
             if (end1 - start1 > 20) {
-                System.out.println(JSONObject.toJSONString(mapper));
                 System.out.println(DateUtils.now() + "单元格耗时: " + (end1 - start1));
             }
             cell.setCellValue(cellValue);

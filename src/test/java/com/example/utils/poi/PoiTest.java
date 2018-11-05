@@ -26,6 +26,9 @@ public class PoiTest {
     public void testWriteExcel() {
         List<Policy> peoples = get5000();
         POI.<Policy>writeExcel(new File(dir + "out.xlsx"))
+                .getSheet()
+                .streamSheet()
+                .getWriter()
                 .write(peoples, Policy.class);
     }
 

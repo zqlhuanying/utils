@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -31,6 +32,7 @@ public abstract class AbstractWorkbookSheet<T> {
                 }
             });
 
+    protected Workbook workbook;
     protected Sheet sheet;
 
     protected static Object doInvoke(Class<?> clazz, String methodName, MethodType methodType,

@@ -10,6 +10,7 @@ import com.google.common.collect.Iterables;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -31,8 +32,9 @@ public class WorkbookBigWriteSheet<T> extends WorkbookWriteSheet<T> {
     @Getter
     private ErrorHandler errorHandler;
 
-    public WorkbookBigWriteSheet(AbstractWorkbookWriter<T> writer, Sheet sheet, PoiOptions options) {
-        super(writer, sheet, options);
+    public WorkbookBigWriteSheet(AbstractWorkbookWriter<T> writer,
+                                 Workbook workbook, Sheet sheet, PoiOptions options) {
+        super(writer, workbook, sheet, options);
     }
 
     @Override

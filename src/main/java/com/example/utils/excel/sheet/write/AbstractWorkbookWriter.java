@@ -6,6 +6,7 @@ import com.example.utils.excel.storage.LocalStorage;
 import com.example.utils.excel.storage.StorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -62,6 +63,10 @@ public abstract class AbstractWorkbookWriter<T> {
         return this.workbook;
     }
 
+    protected void setWorkbook(Workbook workbook) {
+        this.workbook = workbook;
+    }
+
     protected void setSheet(WorkbookWriteSheet<T> writeSheet) {
         this.writeSheet = writeSheet;
     }
@@ -73,6 +78,6 @@ public abstract class AbstractWorkbookWriter<T> {
     protected abstract String doSave(StorageService storageService);
 
     private WorkbookWriteSheet<T> createWriteSheet() {
-        return new WorkbookWriteSheet<>(this, getWorkbook().createSheet(), this.options);
+        return new WorkbookWriteSheet<>(this, getWorkbook(), getWorkbook().createSheet(), this.options);
     }
 }
