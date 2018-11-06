@@ -35,6 +35,14 @@ public abstract class AbstractWorkbookSheet<T> {
     protected Workbook workbook;
     protected Sheet sheet;
 
+    public Workbook getWorkbook() {
+        return this.workbook;
+    }
+
+    public Sheet getSheet() {
+        return this.sheet;
+    }
+
     protected static Object doInvoke(Class<?> clazz, String methodName, MethodType methodType,
                                      Object o, Object params) {
         try {

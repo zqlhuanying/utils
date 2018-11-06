@@ -22,15 +22,25 @@ public class PoiTest {
         PolicyMapper.init();
     }
 
-    @Test
+/*    @Test
     public void testWriteExcel() {
         List<Policy> peoples = get5000();
         POI.<Policy>writeExcel(new File(dir + "out.xlsx"))
                 .getSheet()
-                .streamSheet()
                 .getWriter()
                 .write(peoples, Policy.class);
+    }*/
+
+/*
+    @Test
+    public void testWriteExcel1() {
+        List<Policy> peoples = get5000();
+        POI.<Policy>writeExcel(new File(dir + "out.xlsx"))
+                .sxssfWriter()
+                .setRowAccessWindowSize(1000)
+                .write(peoples, Policy.class);
     }
+*/
 
     private List<Policy> get5000() {
         List<Policy> policies = new ArrayList<>();
