@@ -36,6 +36,7 @@ public abstract class AbstractWorkbookWriter1<T> implements WorkbookWriter<T> {
                 OutputStream output = getOutputStream()
         ) {
             getWriteSheet().write(values, clazz);
+            workbook.write(output);
         } catch (IOException e) {
             log.error("can not auto-close workbook", e);
             return null;
