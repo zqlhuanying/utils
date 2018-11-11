@@ -23,7 +23,7 @@ public class WorkbookSXSSFWriter<T> implements WorkbookWriter<T> {
     }
 
     @Override
-    public String write(List<T> values, Class clazz) {
+    public String write(List<T> values, Class<T> clazz) {
         return this.writer.write(values, clazz);
     }
 }
