@@ -27,7 +27,7 @@ public final class Parsers {
     private static final Parser<Date> DATE_PARSER = new Parser<Date>() {
         @Override
         public Date parse(String value) {
-            return StringUtils.isBlank(value) ? null : DateUtils.parse(value.trim());
+            return StringUtils.isBlank(value) ? null : DateUtils.parse(value.replaceAll("\\s", ""));
         }
 
         @Override
