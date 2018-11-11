@@ -15,7 +15,7 @@ public final class Parsers {
     private static final Parser<String> STRING_PARSER = new Parser<String>() {
         @Override
         public String parse(String value) {
-            return value;
+            return value.trim();
         }
 
         @Override
@@ -27,7 +27,7 @@ public final class Parsers {
     private static final Parser<Date> DATE_PARSER = new Parser<Date>() {
         @Override
         public Date parse(String value) {
-            return StringUtils.isBlank(value) ? null : DateUtils.parse(value);
+            return StringUtils.isBlank(value) ? null : DateUtils.parse(value.trim());
         }
 
         @Override
@@ -39,7 +39,7 @@ public final class Parsers {
     private static final Parser<Integer> INT_PARSER = new Parser<Integer>() {
         @Override
         public Integer parse(String value) {
-            return StringUtils.isBlank(value) ? null : Integer.parseInt(value);
+            return StringUtils.isBlank(value) ? null : Integer.parseInt(value.trim());
         }
 
         @Override
@@ -51,7 +51,7 @@ public final class Parsers {
     private static final Parser<Long> LONG_PARSER = new Parser<Long>() {
         @Override
         public Long parse(String value) {
-            return StringUtils.isBlank(value) ? null : Long.parseLong(value);
+            return StringUtils.isBlank(value) ? null : Long.parseLong(value.trim());
         }
 
         @Override

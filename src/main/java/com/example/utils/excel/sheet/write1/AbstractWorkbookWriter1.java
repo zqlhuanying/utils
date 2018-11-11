@@ -1,6 +1,7 @@
 package com.example.utils.excel.sheet.write1;
 
 import com.alibaba.fastjson.JSON;
+import com.example.utils.excel.handler.CellStyleHandler;
 import com.example.utils.excel.option.PoiOptions;
 import com.example.utils.excel.storage.LocalStorage;
 import com.example.utils.excel.storage.StorageService;
@@ -23,6 +24,7 @@ public abstract class AbstractWorkbookWriter1<T> implements WorkbookWriter<T> {
     protected final StorageService storageService;
 
     private WorkbookWriteSheet1<T> writeSheet;
+    private CellStyleHandler<T> cellStyleHandler;
 
     public AbstractWorkbookWriter1(PoiOptions options, StorageService storageService) {
         this.options = options;
@@ -30,7 +32,7 @@ public abstract class AbstractWorkbookWriter1<T> implements WorkbookWriter<T> {
     }
 
     @Override
-    public String write(final List<T> values, final Class clazz) {
+    public String write(final List<T> values, final Class<T> clazz) {
         try (
                 Workbook workbook = getWriteSheet().getWorkbook();
                 OutputStream output = getOutputStream()
@@ -60,8 +62,15 @@ public abstract class AbstractWorkbookWriter1<T> implements WorkbookWriter<T> {
         return this;
     }
 
+    public AbstractWorkbookWriter1<T> setCellStyleHandler(CellStyleHandler<T> cellStyleHandler) {
+        this.cellStyleHandler = cellStyleHandler;
+        return this;
+    }
+
+
     public WorkbookSXSSFWriter<T> sxssfWriter() {
-        this.setSheet(new WorkbookStreamWriteSheet1<>(this, this.options));
+        this.setSheet(new WorkbookStreamWriteSheet1<>(this, this.options)
+                .setCellStyleHandler(this.cellStyleHandler));
         return new WorkbookSXSSFWriter<>(this);
     }
 
@@ -72,6 +81,7 @@ public abstract class AbstractWorkbookWriter1<T> implements WorkbookWriter<T> {
     protected abstract String doSave(StorageService storageService);
 
     private WorkbookWriteSheet1<T> defaultWriteSheet() {
-        return new WorkbookWriteSheet1<>(this, this.options);
+        return new WorkbookWriteSheet1<>(this, this.options)
+                .setCellStyleHandler(this.cellStyleHandler);
     }
 }

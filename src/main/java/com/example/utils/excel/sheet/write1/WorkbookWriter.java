@@ -7,5 +7,5 @@ import java.util.List;
  */
 public interface WorkbookWriter<T> {
 
-    String write(final List<T> values, final Class clazz);
+    String write(final List<T> values, final Class<T> clazz);
 }

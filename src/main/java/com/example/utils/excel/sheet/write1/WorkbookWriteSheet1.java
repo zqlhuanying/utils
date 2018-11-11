@@ -1,6 +1,8 @@
 package com.example.utils.excel.sheet.write1;
 
-import com.example.utils.DateUtils;
+import com.example.utils.CollectionUtil;
+import com.example.utils.excel.enums.PoiCellStyle;
+import com.example.utils.excel.handler.CellStyleHandler;
 import com.example.utils.excel.mapper.Mapper;
 import com.example.utils.excel.mapper.Mappers;
 import com.example.utils.excel.option.PoiOptions;
@@ -13,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -25,6 +28,7 @@ public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
     private static final DataFormatter STRING_FORMATTER = new DataFormatter();
     protected final AbstractWorkbookWriter1<T> writer;
     protected final PoiOptions options;
+    protected CellStyleHandler<T> cellStyleHandler;
 
     public WorkbookWriteSheet1(AbstractWorkbookWriter1<T> writer, PoiOptions options) {
         this.writer = writer;
@@ -41,6 +45,11 @@ public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
         return this.options;
     }
 
+    public WorkbookWriteSheet1<T> setCellStyleHandler(CellStyleHandler<T> cellStyleHandler) {
+        this.cellStyleHandler = cellStyleHandler;
+        return this;
+    }
+
     protected Workbook createWorkbook() {
         return this.writer.createWorkbook();
     }
@@ -54,7 +63,7 @@ public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
      * @param values: 输出到表格内容
      * @param clazz: 用来输出表头标题
      */
-    protected void write(final Iterable<T> values, final Class clazz) {
+    protected void write(final Iterable<T> values, final Class<T> clazz) {
         if (!Iterables.isEmpty(values)) {
             writeHeader(clazz);
             long start1 = System.currentTimeMillis();
@@ -64,7 +73,7 @@ public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
         }
     }
 
-    protected void writeHeader(final Class clazz) {
+    protected void writeHeader(final Class<T> clazz) {
         int skip = this.options.getSkip();
         createHeader(clazz, sheet.createRow(skip));
     }
@@ -105,30 +114,23 @@ public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
             return;
         }
 
-        Class<?> type = instance.getClass();
+        @SuppressWarnings("unchecked")
+        Class<T> type = (Class<T>) instance.getClass();
         for (Field field : type.getDeclaredFields()) {
             if (ignoreField(field.getName(), options.getIgnoreFields())) {
                 continue;
             }
-            Mapper<?> mapper = Mappers.getMapper(field.getName(), type);
+            Mapper<T> mapper = Mappers.getMapper(field.getName(), type);
             if (mapper == null) {
                 log.warn("can not find suitable mapper for field: {}.", field.getName());
                 continue;
             }
-            long start = System.currentTimeMillis();
-            String cellValue = getFromInstance(instance, mapper);
-            long end = System.currentTimeMillis();
-            if (end - start > 10) {
-                System.out.println(DateUtils.now() + " 反射耗时: " + (end - start));
-            }
 
-            long start1 = System.currentTimeMillis();
             Cell cell = row.createCell(mapper.getColumnIndex());
-            long end1 = System.currentTimeMillis();
-            if (end1 - start1 > 20) {
-                System.out.println(DateUtils.now() + "单元格耗时: " + (end1 - start1));
-            }
+            String cellValue = getFromInstance(instance, mapper);
             cell.setCellValue(cellValue);
+            cell.setCellStyle(workbook.createCellStyle());
+            setCellStyle(instance, mapper, cell, cellValue);
         }
     }
 
@@ -144,13 +146,13 @@ public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
         return parser.deParse(returnValue);
     }
 
-    private void createHeader(final Class<?> clazz, final Row row) {
+    private void createHeader(final Class<T> clazz, final Row row) {
         for (Field field : clazz.getDeclaredFields()) {
             if (ignoreField(field.getName(), options.getIgnoreFields())) {
                 continue;
             }
 
-            Mapper<?> mapper = Mappers.getMapper(field.getName(), clazz);
+            Mapper<T> mapper = Mappers.getMapper(field.getName(), clazz);
             if (mapper == null) {
                 log.warn("can not find suitable mapper for field: {}.", field.getName());
                 continue;
@@ -166,5 +168,18 @@ public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
      */
     private void autoColumnWidth(Mapper mapper) {
         sheet.setColumnWidth(mapper.getColumnIndex(), mapper.getColumnName().getBytes().length * 256);
+    }
+
+    private void setCellStyle(T rowData, Mapper<T> mapper, Cell cell, String cellValue) {
+        List<PoiCellStyle> poiCellStyles = null;
+        if (this.cellStyleHandler != null) {
+            poiCellStyles = this.cellStyleHandler.getCellStyle(rowData, mapper, cellValue);
+        }
+        if (CollectionUtil.isEmpty(poiCellStyles)) {
+            poiCellStyles = mapper.getCellStyle();
+        }
+        if (CollectionUtil.isNotEmpty(poiCellStyles)) {
+            poiCellStyles.forEach(x -> x.setCellStyle(cell));
+        }
     }
 }

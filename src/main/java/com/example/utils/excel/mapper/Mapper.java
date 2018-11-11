@@ -1,5 +1,6 @@
 package com.example.utils.excel.mapper;
 
+import com.example.utils.excel.enums.PoiCellStyle;
 import lombok.Getter;
 
 import java.beans.BeanInfo;
@@ -8,6 +9,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * @author zhuangqianliao
@@ -22,6 +24,7 @@ public class Mapper<T> {
     private MethodType writeMethodType;
     private int columnIndex;
     private String columnName;
+    private List<PoiCellStyle> cellStyle;
 
     public Mapper(int columnIndex, String columnName, String fieldName, Class<T> type) {
         this.columnIndex = columnIndex;
@@ -29,6 +32,11 @@ public class Mapper<T> {
         this.field = fieldName;
         this.clazz = type;
         init();
+    }
+
+    public Mapper setCellStyle(List<PoiCellStyle> cellStyle) {
+        this.cellStyle = cellStyle;
+        return this;
     }
 
     private void init() {

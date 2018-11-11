@@ -37,8 +37,7 @@ public abstract class AbstractSeparatorValidator<A extends Annotation, T> implem
         this.maxSize = separator.maxSize();
         this.predicate = separator.predicate();
         try {
-            this.predicateInstance = Separator.DEFAULT.class.equals(this.predicate) ?
-                    null : this.predicate.newInstance();
+            this.predicateInstance = this.predicate.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
             log.error("instant predicate instance failed", e);
             throw new RuntimeException("instant predicate instance failed");
@@ -65,16 +64,20 @@ public abstract class AbstractSeparatorValidator<A extends Annotation, T> implem
         return true;
     }
 
+    /**
+     * 获取可以迭代的对象
+     */
     protected abstract Iterable<?> iterable(T value);
 
     /**
      * 初始化字段
      */
-    protected abstract void init(A constraintAnnotation);
+    protected void init(A constraintAnnotation) {
+
+    }
 
     protected boolean predicate(Predicate<Object> predicate, Object o) {
-        return predicate == null
-                || predicate.apply(o);
+        return predicate.apply(o);
     }
 
     private Separator synthesize(A constraintAnnotation) {

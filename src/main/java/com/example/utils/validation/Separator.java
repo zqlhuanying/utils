@@ -2,7 +2,6 @@ package com.example.utils.validation;
 
 import com.google.common.base.Predicate;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -28,7 +27,7 @@ public @interface Separator {
 
     class DEFAULT implements Predicate<Object> {
         @Override
-        public boolean apply(@Nullable Object input) {
+        public boolean apply(Object input) {
             return true;
         }
     }
