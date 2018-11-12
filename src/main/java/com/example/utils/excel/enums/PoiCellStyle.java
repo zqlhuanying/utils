@@ -5,6 +5,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,25 +39,23 @@ public interface PoiCellStyle {
          */
         RED(Color.RED.getValue()) {
             @Override
-            public void setCellStyle(Cell cell) {
-                Map<FontProperty, Object> properties = new HashMap<>(4);
-                properties.put(FontProperty.COLOR, getValue());
-                org.apache.poi.ss.usermodel.Font font = getFont(cell, properties);
+            public void setCellStyle(Cell cell, Map<String, Object> properties) {
+                org.apache.poi.ss.usermodel.Font font = getFont(cell, properties, FontProperty.COLOR, getValue());
                 font.setColor((short) getValue());
-                cell.getCellStyle().setFont(font);
+                properties.put(FONT_PROPERTY, font.getIndex());
             }
         },
 
         BOLD(true) {
             @Override
-            public void setCellStyle(Cell cell) {
-                Map<FontProperty, Object> properties = new HashMap<>(4);
-                properties.put(FontProperty.BOLD, getValue());
-                org.apache.poi.ss.usermodel.Font font = getFont(cell, properties);
+            public void setCellStyle(Cell cell, Map<String, Object> properties) {
+                org.apache.poi.ss.usermodel.Font font = getFont(cell, properties, FontProperty.BOLD, getValue());
                 font.setBold((boolean) getValue());
-                cell.getCellStyle().setFont(font);
+                properties.put(FONT_PROPERTY, font.getIndex());
             }
         };
+
+        private static final String FONT_PROPERTY = CellUtil.FONT;
 
         @Getter
         private Object value;
@@ -65,10 +64,17 @@ public interface PoiCellStyle {
             this.value = value;
         }
 
-        protected org.apache.poi.ss.usermodel.Font getFont(Cell cell, Map<FontProperty, Object> properties) {
+        protected org.apache.poi.ss.usermodel.Font getFont(Cell cell, Map<String, Object> properties, FontProperty fontProperty, Object propertyValue) {
+            // get font index
             Workbook wb = cell.getSheet().getWorkbook();
-            org.apache.poi.ss.usermodel.Font font = wb.getFontAt(cell.getCellStyle().getFontIndex());
-            return getFont(wb, font, properties);
+            short fontIndex = properties.get(FONT_PROPERTY) == null ?
+                    cell.getCellStyle().getFontIndex() : (short) properties.get(FONT_PROPERTY);
+            org.apache.poi.ss.usermodel.Font oldFont = wb.getFontAt(fontIndex);
+
+            Map<FontProperty, Object> fontProperties = new HashMap<>(4);
+            fontProperties.put(fontProperty, propertyValue);
+
+            return getFont(wb, oldFont, fontProperties);
         }
 
         private enum FontProperty {
@@ -119,18 +125,21 @@ public interface PoiCellStyle {
         }
     }
 
-    enum BACKGROUND implements PoiCellStyle {
+    enum FOREGROUND implements PoiCellStyle {
         /**
          * 背景色
          */
         RED {
             @Override
-            public void setCellStyle(Cell cell) {
-                cell.getCellStyle().setFillForegroundColor(Color.RED.getValue());
-                cell.getCellStyle().setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            public void setCellStyle(Cell cell, Map<String, Object> properties) {
+                properties.put(FOREGROUND_PROPERTY, Color.RED.getValue());
+                properties.put(FILL_PATTERN_PROPERTY, FillPatternType.SOLID_FOREGROUND);
             }
-        }
+        };
+
+        private static final String FOREGROUND_PROPERTY = CellUtil.FILL_FOREGROUND_COLOR;
+        private static final String FILL_PATTERN_PROPERTY = CellUtil.FILL_PATTERN;
     }
 
-    void setCellStyle(Cell cell);
+    void setCellStyle(Cell cell, Map<String, Object> properties);
 }

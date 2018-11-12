@@ -13,9 +13,12 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellUtil;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -128,9 +131,9 @@ public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
 
             Cell cell = row.createCell(mapper.getColumnIndex());
             String cellValue = getFromInstance(instance, mapper);
+            Map<String, Object> properties = getCellStyle(instance, mapper, cell, cellValue);
             cell.setCellValue(cellValue);
-            cell.setCellStyle(workbook.createCellStyle());
-            setCellStyle(instance, mapper, cell, cellValue);
+            CellUtil.setCellStyleProperties(cell, properties);
         }
     }
 
@@ -170,7 +173,8 @@ public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
         sheet.setColumnWidth(mapper.getColumnIndex(), mapper.getColumnName().getBytes().length * 256);
     }
 
-    private void setCellStyle(T rowData, Mapper<T> mapper, Cell cell, String cellValue) {
+    private Map<String, Object> getCellStyle(T rowData, Mapper<T> mapper, Cell cell, String cellValue) {
+        Map<String, Object> properties = new HashMap<>(16);
         List<PoiCellStyle> poiCellStyles = null;
         if (this.cellStyleHandler != null) {
             poiCellStyles = this.cellStyleHandler.getCellStyle(rowData, mapper, cellValue);
@@ -179,7 +183,8 @@ public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
             poiCellStyles = mapper.getCellStyle();
         }
         if (CollectionUtil.isNotEmpty(poiCellStyles)) {
-            poiCellStyles.forEach(x -> x.setCellStyle(cell));
+            poiCellStyles.forEach(x -> x.setCellStyle(cell, properties));
         }
+        return properties;
     }
 }
