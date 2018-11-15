@@ -1,6 +1,5 @@
-package com.example.utils;
+package com.example.utils.java8;
 
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import jdk.nashorn.internal.runtime.ParserException;
 import org.joda.time.format.DateTimeFormat;
@@ -8,6 +7,7 @@ import org.joda.time.format.DateTimeFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author qianliao.zhuang
@@ -15,26 +15,11 @@ import java.util.Map;
 public final class FunctionUtils {
     private FunctionUtils() {}
 
-    private static final Function<String, Long> STRING_TO_LONG_FUNCTION = new Function<String, Long>() {
-        @Override
-        public Long apply(String input) {
-            return Long.parseLong(input);
-        }
-    };
+    private static final Function<String, Long> STRING_TO_LONG_FUNCTION = Long::parseLong;
 
-    private static final Function<String, Integer> STRING_TO_INTEGER_FUNCTION = new Function<String, Integer>() {
-        @Override
-        public Integer apply(String input) {
-            return Integer.parseInt(input);
-        }
-    };
+    private static final Function<String, Integer> STRING_TO_INTEGER_FUNCTION = Integer::parseInt;
 
-    private static final Function<String, Boolean> STRING_TO_BOOLEAN_FUNCTION = new Function<String, Boolean>() {
-        @Override
-        public Boolean apply(String input) {
-            return Boolean.valueOf(input);
-        }
-    };
+    private static final Function<String, Boolean> STRING_TO_BOOLEAN_FUNCTION = Boolean::valueOf;
 
     private static final Function<String, Map<String, String>> STRING_TO_MAP = new Function<String, Map<String, String>>() {
         private final Splitter.MapSplitter mapSplitter = Splitter.on(",").withKeyValueSeparator("=");
@@ -60,14 +45,29 @@ public final class FunctionUtils {
         return StringToDateFunction.INSTANCE;
     }
 
+    public static Function<String, Date> stringToDateWithFormat(String format) {
+        return FunctionUtils.<String>identity()
+                .andThen(StringToDateFunction.INSTANCE);
+    }
+
     public static Function<String, Map<String, String>> stringToMap() {
         return STRING_TO_MAP;
     }
 
     /**
+     * Returns a function that always returns its input argument.
+     *
+     * @param <T> the type of the input and output objects to the function
+     * @return a function that always returns its input argument
+     */
+    public static <T> Function<T, T> identity() {
+        return Function.identity();
+    }
+
+    /**
      * Function 将数字转成字符串
-     * @param <F>: Number
-     * @return: Function
+     * @param <F> Number
+     * @return Function
      */
     @SuppressWarnings("unchecked")
     public static <F extends Number> Function<F, String> numberToString() {
@@ -123,5 +123,8 @@ public final class FunctionUtils {
                     .parseDateTime(input)
                     .toDate();
         }
+    }
+
+    public static void main(String[] args) {
     }
 }
