@@ -22,12 +22,23 @@ public final class FunctionUtils {
         }
     };
 
+    private static final Function<String, Boolean> STRING_TO_BOOLEAN_FUNCTION = new Function<String, Boolean>() {
+        @Override
+        public Boolean apply(String input) {
+            return Boolean.valueOf(input);
+        }
+    };
+
     public static Function<String, Long> stringToLong() {
         return STRING_TO_LONG_FUNCTION;
     }
 
     public static Function<String, Integer> stringToInteger() {
         return STRING_TO_INTEGER_FUNCTION;
+    }
+
+    public static Function<String, Boolean> stringToBoolean() {
+        return STRING_TO_BOOLEAN_FUNCTION;
     }
 
     /**
