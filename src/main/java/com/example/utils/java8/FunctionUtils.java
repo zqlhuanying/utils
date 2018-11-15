@@ -1,5 +1,6 @@
 package com.example.utils.java8;
 
+import com.example.utils.DateUtils;
 import com.google.common.base.Splitter;
 import jdk.nashorn.internal.runtime.ParserException;
 import org.joda.time.format.DateTimeFormat;
@@ -7,6 +8,7 @@ import org.joda.time.format.DateTimeFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -126,5 +128,11 @@ public final class FunctionUtils {
     }
 
     public static void main(String[] args) {
+        for (int i = 0; i < 10; i++) {
+            Function<String, Date> s = String_to_date_with_format.apply("yyyy-MM-dd");
+            System.out.println(s.apply("2017-09-21"));
+        }
     }
+
+    static Function<String, Function<String, Date>> String_to_date_with_format = format -> dateStr -> DateUtils.parse(dateStr, format);
 }
