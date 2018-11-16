@@ -1,15 +1,16 @@
 package com.example.utils.java8;
 
-import com.example.utils.DateUtils;
 import com.google.common.base.Splitter;
-import jdk.nashorn.internal.runtime.ParserException;
+import com.google.common.collect.Lists;
 import org.joda.time.format.DateTimeFormat;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author qianliao.zhuang
@@ -17,26 +18,32 @@ import java.util.function.Function;
 public final class FunctionUtils {
     private FunctionUtils() {}
 
-    private static final Function<String, Long> STRING_TO_LONG_FUNCTION = Long::parseLong;
+    private static final Function<String, Short> STRING_TO_SHORT_FUNCTION = Short::parseShort;
 
     private static final Function<String, Integer> STRING_TO_INTEGER_FUNCTION = Integer::parseInt;
 
+    private static final Function<String, Long> STRING_TO_LONG_FUNCTION = Long::parseLong;
+
     private static final Function<String, Boolean> STRING_TO_BOOLEAN_FUNCTION = Boolean::valueOf;
 
-    private static final Function<String, Map<String, String>> STRING_TO_MAP = new Function<String, Map<String, String>>() {
-        private final Splitter.MapSplitter mapSplitter = Splitter.on(",").withKeyValueSeparator("=");
-        @Override
-        public Map<String, String> apply(String input) {
-            return mapSplitter.split(input);
-        }
-    };
+    private static final Function<String, Date> STRING_TO_DATE_FUNCTION = StringToDateFunction.INSTANCE;
 
-    public static Function<String, Long> stringToLong() {
-        return STRING_TO_LONG_FUNCTION;
+    private static final BiFunction<String, String, Date> STRING_TO_DATE_WITH_FORMAT = StringToDateFunction.INSTANCE::parse;
+
+    private static final Function<String, Map<String, String>> STRING_TO_MAP = StringToMapFunction.INSTANCE;
+
+    private static final BiFunction<String, Splitter.MapSplitter, Map<String, String>> STRING_TO_MAP_WITH_SPLITTER = StringToMapFunction.INSTANCE::parse;
+
+    public static Function<String, Short> stringToShort() {
+        return STRING_TO_SHORT_FUNCTION;
     }
 
     public static Function<String, Integer> stringToInteger() {
         return STRING_TO_INTEGER_FUNCTION;
+    }
+
+    public static Function<String, Long> stringToLong() {
+        return STRING_TO_LONG_FUNCTION;
     }
 
     public static Function<String, Boolean> stringToBoolean() {
@@ -44,16 +51,41 @@ public final class FunctionUtils {
     }
 
     public static Function<String, Date> stringToDate() {
-        return StringToDateFunction.INSTANCE;
+        return STRING_TO_DATE_FUNCTION;
     }
 
+    /**
+     * Curry Function by using lambda
+     * Every time return a new anonymous function
+     * if mind, please use {@code stringToDateWithFormat()}
+     * @param format the formatter
+     * @return Function<String, Date>
+     */
     public static Function<String, Date> stringToDateWithFormat(String format) {
-        return FunctionUtils.<String>identity()
-                .andThen(StringToDateFunction.INSTANCE);
+        return (dateStr) -> StringToDateFunction.INSTANCE.parse(dateStr, format);
+    }
+
+    public static BiFunction<String, String, Date> stringToDateWithFormat() {
+        return STRING_TO_DATE_WITH_FORMAT;
     }
 
     public static Function<String, Map<String, String>> stringToMap() {
         return STRING_TO_MAP;
+    }
+
+    /**
+     * Curry Function by using lambda
+     * Every time return a new anonymous function
+     * if mind, please use {@code stringToMapWithSplitter()}
+     * @param splitter the splitter used
+     * @return Function<String, Map<String, String>
+     */
+    public static Function<String, Map<String, String>> stringToMapWithSplitter(Splitter.MapSplitter splitter) {
+        return str -> StringToMapFunction.INSTANCE.parse(str, splitter);
+    }
+
+    public static BiFunction<String, Splitter.MapSplitter, Map<String, String>> stringToMapWithSplitter() {
+        return STRING_TO_MAP_WITH_SPLITTER;
     }
 
     /**
@@ -97,28 +129,26 @@ public final class FunctionUtils {
         private static final String LONG_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
         private static final String MEDIUM_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
         private static final String SHORT_DATE_FORMAT = "yyyy-MM-dd";
+        private static final List<String> ALL_DATE_FORMAT = Lists.newArrayList(
+                LONG_DATE_FORMAT, MEDIUM_DATE_FORMAT, SHORT_DATE_FORMAT
+        );
 
         @Override
         public Date apply(String input) {
             return parse(input);
         }
 
-        private Date parse(String input) throws ParserException {
-            input = input.trim();
-            int length = input.length();
-
-            if (length == LONG_DATE_FORMAT.length()) {
-                return parse(input, LONG_DATE_FORMAT);
-            }
-
-            if (length == MEDIUM_DATE_FORMAT.length()) {
-                return parse(input, MEDIUM_DATE_FORMAT);
-            }
-
-            return parse(input, SHORT_DATE_FORMAT);
+        public Date parse(String input) {
+            String input0 = input.trim();
+            int length = input0.length();
+            return ALL_DATE_FORMAT.stream()
+                    .filter(format -> format.length() == length)
+                    .map(format -> parse(input0, format))
+                    .collect(Collectors.toList())
+                    .get(0);
         }
 
-        private Date parse(String input, String format) throws ParserException {
+        public Date parse(String input, String format) {
             return DateTimeFormat
                     .forPattern(format)
                     .withLocale(Locale.US)
@@ -127,12 +157,24 @@ public final class FunctionUtils {
         }
     }
 
-    public static void main(String[] args) {
-        for (int i = 0; i < 10; i++) {
-            Function<String, Date> s = String_to_date_with_format.apply("yyyy-MM-dd");
-            System.out.println(s.apply("2017-09-21"));
+    private enum StringToMapFunction implements Function<String, Map<String, String>>{
+        /**
+         * Map Parser Instance
+         */
+        INSTANCE;
+
+        private static final Splitter.MapSplitter SPLITTER =
+                Splitter.on(",")
+                .omitEmptyStrings()
+                .withKeyValueSeparator(":");
+
+        @Override
+        public Map<String, String> apply(String input) {
+            return parse(input, SPLITTER);
+        }
+
+        public Map<String, String> parse(String input, Splitter.MapSplitter splitter) {
+            return splitter.split(input);
         }
     }
-
-    static Function<String, Function<String, Date>> String_to_date_with_format = format -> dateStr -> DateUtils.parse(dateStr, format);
 }
