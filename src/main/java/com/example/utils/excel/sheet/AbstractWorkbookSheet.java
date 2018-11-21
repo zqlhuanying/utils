@@ -24,7 +24,7 @@ public abstract class AbstractWorkbookSheet<T> {
 
     private static final LoadingCache<MethodCacheKey, MethodHandle> METHOD_CACHE = CacheBuilder.newBuilder()
             .maximumSize(1000)
-            .refreshAfterWrite(30, TimeUnit.MINUTES)
+            .expireAfterWrite(30, TimeUnit.MINUTES)
             .build(new CacheLoader<MethodCacheKey, MethodHandle>() {
                 @Override
                 public MethodHandle load(MethodCacheKey key) throws Exception {
