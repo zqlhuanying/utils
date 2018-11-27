@@ -13,10 +13,9 @@ import java.util.*;
 /**
  * @author qianliao.zhuang
  */
-public class CollectionUtil {
+public final class CollectionUtil {
 
-    private CollectionUtil() {
-    }
+    private CollectionUtil() {}
 
     public static <F, T> Iterable<T> map(final Iterable<F> fromIterable, final Function<F, T> function) {
         return FluentIterable
@@ -89,28 +88,36 @@ public class CollectionUtil {
         });
     }
 
-    public static boolean isEmpty(Collection coll) {
-        return coll == null || coll.isEmpty();
+    public static boolean isEmpty(Iterable<?> iterable) {
+        if (iterable instanceof Collection) {
+            return ((Collection<?>) iterable).isEmpty();
+        }
+        return iterable == null || !iterable.iterator().hasNext();
     }
 
-    public static boolean isNotEmpty(Collection coll) {
-        return !isEmpty(coll);
+    public static boolean isNotEmpty(Iterable<?> iterable) {
+        return !isEmpty(iterable);
     }
 
-    public static <T> Iterable<T> safeNull(Iterable<T> iterable) {
-        return iterable != null ?
-                iterable :
-                new FluentIterable<T>() {
-                    @Override
-                    public Iterator<T> iterator() {
-                        return Collections.emptyIterator();
-                    }
-                };
+    public static <T> Iterable<T> safeNull(final Iterable<T> iterable) {
+        return iterable != null ? iterable : emptyIterable();
     }
 
     public static <T> T getOrDefault(Iterable<T> iterable, int position, T defaultT) {
         return Iterables.get(safeNull(iterable), position, defaultT);
     }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Iterable<T> emptyIterable() {
+        return (Iterable<T>) EMPTY_ITERABLE;
+    }
+
+    private static Iterable<Object> EMPTY_ITERABLE = new FluentIterable<Object>() {
+        @Override
+        public Iterator<Object> iterator() {
+            return Collections.emptyIterator();
+        }
+    };
 
     private static class SubIterator<T> extends AbstractIterator<Iterable<T>> {
         private final Iterable<T> iterable;
