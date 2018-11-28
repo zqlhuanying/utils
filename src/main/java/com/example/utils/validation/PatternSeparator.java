@@ -47,8 +47,6 @@ public @interface PatternSeparator {
      */
     String separator() default "/";
 
-    int groupIndex() default 0;
-
     String message() default "{com.jd.galaxy.validation.annotation.Separator.message}";
 
     Class<?>[] groups() default { };

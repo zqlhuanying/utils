@@ -59,7 +59,7 @@ public final class FunctionUtils {
      * Every time return a new anonymous function
      * if mind, please use {@code stringToDateWithFormat()}
      * @param format the formatter
-     * @return Function<String, Date>
+     * @return {@code Function<String, Date>}
      */
     public static Function<String, Date> stringToDateWithFormat(String format) {
         return (dateStr) -> StringToDateFunction.INSTANCE.parse(dateStr, format);
@@ -78,7 +78,7 @@ public final class FunctionUtils {
      * Every time return a new anonymous function
      * if mind, please use {@code stringToMapWithSplitter()}
      * @param splitter the splitter used
-     * @return Function<String, Map<String, String>
+     * @return {@code Function<String, Map<String, String>}
      */
     public static Function<String, Map<String, String>> stringToMapWithSplitter(Splitter.MapSplitter splitter) {
         return str -> StringToMapFunction.INSTANCE.parse(str, splitter);
