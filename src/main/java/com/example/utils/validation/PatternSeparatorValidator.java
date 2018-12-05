@@ -1,12 +1,10 @@
 package com.example.utils.validation;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -19,6 +17,7 @@ public class PatternSeparatorValidator extends AbstractSeparatorValidator<Patter
     private String separator;
     private Pattern separatorPattern;
     private Pattern pattern;
+    private Splitter splitter;
 
     @Override
     protected void init(PatternSeparator constraintAnnotation) {
@@ -27,16 +26,12 @@ public class PatternSeparatorValidator extends AbstractSeparatorValidator<Patter
         this.separatorPattern = Pattern.compile(this.separator);
         this.pattern = StringUtils.isBlank(this.constraintAnnotation.pattern()) ?
                 null : Pattern.compile(this.constraintAnnotation.pattern());
+        this.splitter = Splitter.on(this.separatorPattern);
     }
 
     @Override
     protected Iterable<?> iterable(CharSequence value) {
-        List<String> list = new ArrayList<>();
-        String tmp = value + "/";
-        for (Matcher m = this.separatorPattern.matcher(tmp); m.find();) {
-            list.add(m.group(this.constraintAnnotation.groupIndex()));
-        }
-        return list;
+        return this.splitter.split(value);
     }
 
     @Override
