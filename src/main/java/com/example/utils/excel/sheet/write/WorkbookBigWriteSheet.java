@@ -68,7 +68,7 @@ public class WorkbookBigWriteSheet<T> extends WorkbookWriteSheet<T> {
     private void check(Iterable<T> values) {
         int threshold = options == null ? THRESHOLD : options.getThreshold();
         if (Iterables.size(values) > threshold) {
-            throw new PoiOverThresholdException("over threshold: " + threshold);
+            throw new PoiOverThresholdException(threshold);
         }
     }
 }
