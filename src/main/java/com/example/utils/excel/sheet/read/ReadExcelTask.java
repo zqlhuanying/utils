@@ -101,8 +101,8 @@ public class ReadExcelTask<T> extends RecursiveTask<List<T>> {
             return results;
         } catch (Exception e) {
             List<Row> errorRows = getErrorRows();
-            log.error("read values from sheet failed! Values: {}",
-                     errorRows, e);
+            log.error("Read values from sheet failed! Row[{}, {}]",
+                    this.start, this.end, e);
 
             if (this.errorHandler != null) {
                 this.errorHandler.handle(this.options, errorRows, e);

@@ -5,11 +5,11 @@ package com.example.utils.excel.exception;
  */
 public class PoiOverThresholdException extends RuntimeException {
 
-    public PoiOverThresholdException(String message) {
-        super(message);
+    public PoiOverThresholdException(int threshold) {
+        super("Over threshold " + threshold);
     }
 
-    public PoiOverThresholdException(String message, Throwable cause) {
-        super(message, cause);
+    public PoiOverThresholdException(int threshold, Throwable cause) {
+        super("Over threshold " + threshold, cause);
     }
 }

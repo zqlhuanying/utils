@@ -37,7 +37,7 @@ public class WorkbookBigSheet<T> extends WorkbookReadSheet<T> {
 
         int threshold = options == null ? THRESHOLD : options.getThreshold();
         if (sheet.getLastRowNum() > threshold) {
-            throw new PoiOverThresholdException("over threshold: " + threshold);
+            throw new PoiOverThresholdException(threshold);
         }
     }
 
