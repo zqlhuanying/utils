@@ -22,7 +22,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * @author zhuangqianliao
  */
 @Slf4j
-public class WorkbookReadSheet<T> extends AbstractWorkbookSheet<T> implements ForkJoin<T> {
+public class WorkbookReadSheet<T> extends AbstractWorkbookSheet<T> {
 
     final PoiOptions options;
 
@@ -39,8 +39,7 @@ public class WorkbookReadSheet<T> extends AbstractWorkbookSheet<T> implements Fo
         return read(options.getSkip(), sheet.getLastRowNum(), type);
     }
 
-    @Override
-    public List<T> read(final int startRow, final int endRow, final Class<T> type) {
+    protected List<T> read(final int startRow, final int endRow, final Class<T> type) {
         checkArgument(startRow >= 0, "start must be negative");
         checkArgument(endRow >= startRow, "end must be glt start");
 

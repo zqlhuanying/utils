@@ -6,12 +6,11 @@ import com.example.utils.excel.exception.PoiOverThresholdException;
 import com.example.utils.excel.handler.ErrorHandler;
 import com.example.utils.excel.handler.ResultAdvice;
 import com.example.utils.excel.option.PoiOptions;
-import com.google.common.collect.FluentIterable;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.Row;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,37 +24,49 @@ import java.util.concurrent.RecursiveTask;
  * Use Fork/Join to read
  */
 @Slf4j
-public class WorkbookBigReader<T> extends FilterWorkbookReader<T>{
+public class WorkbookBigReader<T, R> extends FilterWorkbookReader<T>{
 
     private static final int THREADS = Runtime.getRuntime().availableProcessors();
     private static final ForkJoinPool FORK_JOIN_POOL = new ForkJoinPool(THREADS);
+    /**
+     * rows limited
+     */
     private static final int THRESHOLD = 0x0000ffff;
 
     @Getter
     private ResultAdvice<T> advice;
     @Getter
-    private ErrorHandler errorHandler;
+    private ErrorHandler<R> errorHandler;
+    // small task threshold
+    @Getter
+    private Integer taskThreshold;
 
     public WorkbookBigReader(WorkbookReader<T> reader) {
         super(reader);
+
+        if (!(getReader() instanceof ForkJoin)) {
+            throw new PoiException(
+                    String.format("WorkbookReader[%s] can not supported fork/join", getReader().getClass().getName())
+            );
+        }
 
         int threshold = getReadSheet().options == null ?
                 THRESHOLD : getReadSheet().options.getThreshold();
         if (getReadSheet().getRows() > threshold) {
             throw new PoiOverThresholdException(threshold);
         }
-        if (!(getReadSheet() instanceof ForkJoin)) {
-            throw new PoiException(
-                    String.format("WorkbookReadSheet[%s] can not supported fork/join", getReadSheet().getClass().getName())
-            );
-        }
     }
 
     @Override
     public List<T> read(Class<T> type) {
-        ReadExcelTask<T> task = new TaskBuilder<>(getReadSheet(), getReadSheet().options, type)
-                .setAdvice(advice)
-                .setErrorHandler(errorHandler)
+        @SuppressWarnings("unchecked")
+        ForkJoin<T, R> forkJoin = (ForkJoin<T, R>) getReader();
+        int start = getReadSheet().options.getSkip();
+        int end = getReadSheet().getRows();
+        ReadExcelTask<T, R> task = new TaskBuilder<>(forkJoin, start, end, type, getReadSheet().options)
+                .setAdvice(this.advice)
+                .setErrorHandler(this.errorHandler)
+                .setThreshold(this.taskThreshold)
                 .build();
         Future<List<T>> res = FORK_JOIN_POOL.submit(task);
         try {
@@ -63,106 +74,132 @@ public class WorkbookBigReader<T> extends FilterWorkbookReader<T>{
         } catch (InterruptedException | ExecutionException e) {
             log.error("execution task: {} failed!", JSONObject.toJSONString(task), e);
             return Collections.emptyList();
+        } finally {
+            try {
+                getReadSheet().getWorkbook().close();
+            } catch (IOException e) {
+                log.error("can not close workbook", e);
+            }
         }
     }
 
-    public WorkbookBigReader<T> setAdvice(ResultAdvice<T> advice) {
+    public WorkbookBigReader<T, R> setAdvice(ResultAdvice<T> advice) {
         this.advice = advice;
         return this;
     }
 
-    public WorkbookBigReader<T> setErrorHandler(ErrorHandler errorHandler) {
+    public WorkbookBigReader<T, R> setErrorHandler(ErrorHandler<R> errorHandler) {
         this.errorHandler = errorHandler;
         return this;
     }
 
+    public WorkbookBigReader<T, R> setTaskThreshold(Integer taskThreshold) {
+        this.taskThreshold = taskThreshold;
+        return this;
+    }
+
     @Data
-    private static class TaskBuilder<T> {
-        private WorkbookReadSheet<T> sheet;
+    private static class TaskBuilder<T, R> {
+        private ForkJoin<T, R> reader;
+        private int start;
+        private int end;
         private Class<T> type;
         private PoiOptions options;
         private ResultAdvice<T> advice;
-        private ErrorHandler errorHandler;
+        private ErrorHandler<R> errorHandler;
+        private Integer threshold;
 
-        public TaskBuilder(WorkbookReadSheet<T> sheet, PoiOptions options, Class<T> type) {
-            this.sheet = sheet;
-            this.options = options;
+        TaskBuilder(ForkJoin<T, R> reader, int start, int end, Class<T> type, PoiOptions options) {
+            this.reader = reader;
+            this.start = start;
+            this.end = end;
             this.type = type;
+            this.options = options;
         }
 
-        public TaskBuilder<T> setAdvice(ResultAdvice<T> advice) {
+        TaskBuilder<T, R> setAdvice(ResultAdvice<T> advice) {
             this.advice = advice;
             return this;
         }
 
-        public TaskBuilder<T> setErrorHandler(ErrorHandler errorHandler) {
+        TaskBuilder<T, R> setErrorHandler(ErrorHandler<R> errorHandler) {
             this.errorHandler = errorHandler;
             return this;
         }
 
-        public ReadExcelTask<T> build() {
+        TaskBuilder<T, R> setThreshold(Integer threshold) {
+            this.threshold = threshold;
+            return this;
+        }
+
+        public ReadExcelTask<T, R> build() {
             return new ReadExcelTask<>(this);
         }
     }
 
     @Slf4j
-    private static class ReadExcelTask<T> extends RecursiveTask<List<T>> {
+    private static class ReadExcelTask<T, R> extends RecursiveTask<List<T>> {
 
-        private static final int THRESHOLD = 20;
-        private final WorkbookReadSheet<T> sheet;
+        private static final int DEFAULT_THRESHOLD = 20;
+        private final ForkJoin<T, R> reader;
+        private int start;
+        private int end;
         private final Class<T> type;
         private final PoiOptions options;
         private final ResultAdvice<T> advice;
-        private final ErrorHandler errorHandler;
-        private int start;
-        private int end;
+        private final ErrorHandler<R> errorHandler;
+        private final Integer threshold;
 
-        public ReadExcelTask(TaskBuilder<T> builder) {
+        ReadExcelTask(TaskBuilder<T, R> builder) {
             this(
-                    builder.getSheet(),
+                    builder.getReader(),
+                    builder.getStart(),
+                    builder.getEnd(),
                     builder.getType(),
                     builder.getOptions(),
                     builder.getAdvice(),
                     builder.getErrorHandler(),
-                    builder.getOptions().getSkip(),
-                    builder.getSheet().getRows()
+                    builder.getThreshold()
             );
         }
 
         private ReadExcelTask(
-                WorkbookReadSheet<T> sheet,
+                ForkJoin<T, R> reader,
+                int start,
+                int end,
                 Class<T> type,
                 PoiOptions options,
                 ResultAdvice<T> advice,
-                ErrorHandler errorHandler,
-                int start, int end) {
-            this.sheet = sheet;
+                ErrorHandler<R> errorHandler,
+                Integer threshold) {
+            this.reader = reader;
+            this.start = start;
+            this.end = end;
             this.type = type;
             this.options = options;
             this.advice = advice;
             this.errorHandler = errorHandler;
-            this.start = start;
-            this.end = end;
+            this.threshold = threshold == null ? DEFAULT_THRESHOLD : threshold;
         }
 
         @Override
         protected List<T> compute() {
             List<T> result = new ArrayList<>(this.end - this.start);
 
-            boolean canCompute = (this.end - this.start) <= THRESHOLD;
+            boolean canCompute = (this.end - this.start) <= this.threshold;
             if (canCompute) {
                 result.addAll(doCompute());
             } else {
                 int middle = (this.start + this.end) >> 1;
-                ReadExcelTask<T> leftTask = new ReadExcelTask<>(
-                        sheet, this.type, this.options,
-                        this.advice, this.errorHandler,
-                        this.start, middle
+                ReadExcelTask<T, R> leftTask = new ReadExcelTask<>(
+                        this.reader, this.start, middle, this.type,
+                        this.options,
+                        this.advice, this.errorHandler, this.threshold
                 );
-                ReadExcelTask<T> rightTask = new ReadExcelTask<>(
-                        sheet, this.type, this.options,
-                        this.advice, this.errorHandler,
-                        middle + 1, this.end
+                ReadExcelTask<T, R> rightTask = new ReadExcelTask<>(
+                        this.reader, middle + 1, this.end, this.type,
+                        this.options,
+                        this.advice, this.errorHandler, this.threshold
                 );
                 // fork
                 invokeAll(leftTask, rightTask);
@@ -185,28 +222,21 @@ public class WorkbookBigReader<T> extends FilterWorkbookReader<T>{
                 return Collections.emptyList();
             }
             try {
-                List<T> results = this.sheet.read(this.start, this.end, this.type);
+                List<T> results = this.reader.read(this.start, this.end, this.type);
                 if (this.advice != null) {
                     results = this.advice.advice(this.options, results);
                 }
                 return results;
             } catch (Exception e) {
-                List<Row> errorRows = getErrorRows();
+                List<R> errors = this.reader.errors(this.start, this.end);
                 log.error("Read values from sheet failed! Row[{}, {}]",
                         this.start, this.end, e);
 
                 if (this.errorHandler != null) {
-                    this.errorHandler.handle(this.options, errorRows, e);
+                    this.errorHandler.handle(this.options, errors, e);
                 }
                 return Collections.emptyList();
             }
-        }
-
-        private List<Row> getErrorRows() {
-            return FluentIterable.from(this.sheet.getSheet())
-                    .skip(this.start)
-                    .limit(this.end - this.start + 1)
-                    .toList();
         }
     }
 }

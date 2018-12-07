@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * @author zhuangqianliao
  */
-public class PoiPeoPleTest {
+public class PoiPeopleTest {
 
     private static final String dir = "D:\\1\\";
 
@@ -31,7 +31,7 @@ public class PoiPeoPleTest {
         String path = dir + "people.xlsx";
         List<People> peoples = POI.<People>fromExcel(new File(path))
                 .read(People.class);
-        assert peoples.size() == 1;
+        assert peoples.size() == 2;
     }
 
     @Test
@@ -39,8 +39,9 @@ public class PoiPeoPleTest {
         String path = dir + "people.xlsx";
         List<People> peoples = POI.<People>fromExcel(new File(path))
                 .bigReader()
+                .setTaskThreshold(1)
                 .read(People.class);
-        assert peoples.size() == 1;
+        assert peoples.size() == 2;
     }
 
     /**
@@ -51,7 +52,7 @@ public class PoiPeoPleTest {
         String path = dir + "people.xlsx";
         List<People> peoples = POI.<People>fromExcel(new FileInputStream(path), PoiExcelType.XLSX)
                 .read(People.class);
-        assert peoples.size() == 1;
+        assert peoples.size() == 2;
     }
 
     @Test
@@ -60,7 +61,7 @@ public class PoiPeoPleTest {
         List<People> peoples = POI.<People>fromExcel(new FileInputStream(path), PoiExcelType.XLSX)
                 .bigReader()
                 .read(People.class);
-        assert peoples.size() == 1;
+        assert peoples.size() == 2;
     }
 
     private static class PeopleMapper extends Mapper<People> {

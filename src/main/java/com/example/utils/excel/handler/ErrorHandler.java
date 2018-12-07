@@ -10,7 +10,7 @@ import java.util.List;
  * 错误处理
  * 线程池环境下，如果出现异常，可以通过该接口，进行后续处理
  */
-public interface ErrorHandler {
+public interface ErrorHandler<T> {
 
     /**
      * 对出错的记录，进行处理
@@ -18,5 +18,5 @@ public interface ErrorHandler {
      * @param errors: 出错的数据
      * @param e: 出错信息
      */
-    void handle(PoiOptions options, List<?> errors, Exception e);
+    void handle(PoiOptions options, List<T> errors, Exception e);
 }
