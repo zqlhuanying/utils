@@ -18,5 +18,5 @@ public interface ErrorHandler {
      * @param errors: 出错的数据
      * @param e: 出错信息
      */
-    void handle(PoiOptions options, List<Row> errors, Exception e);
+    void handle(PoiOptions options, List<?> errors, Exception e);
 }

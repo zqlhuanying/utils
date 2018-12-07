@@ -1,4 +1,4 @@
-package com.example.utils.excel.sheet.read;
+/*package com.example.utils.excel.sheet.read;
 
 import com.example.utils.excel.handler.ErrorHandler;
 import com.example.utils.excel.handler.ResultAdvice;
@@ -14,9 +14,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.RecursiveTask;
 
-/**
+*//**
  * @author zhuangqianliao
- */
+ *//*
 @Slf4j
 public class ReadExcelTask<T> extends RecursiveTask<List<T>> {
 
@@ -83,11 +83,11 @@ public class ReadExcelTask<T> extends RecursiveTask<List<T>> {
         return result;
     }
 
-    /**
+    *//**
      * 小任务计算
      * 如果有异常，则此次小任务全部失败，但不会影响到整体失败
      * @return List<T>
-     */
+     *//*
     private List<T> doCompute() {
         if (this.end < this.start) {
             return Collections.emptyList();
@@ -117,4 +117,4 @@ public class ReadExcelTask<T> extends RecursiveTask<List<T>> {
                 .limit(this.end - this.start + 1)
                 .toList();
     }
-}
+}*/

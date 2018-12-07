@@ -125,11 +125,11 @@
 			<artifactId>cyclops</artifactId>
 			<version>10.0.3</version>
 		</dependency>
-		<dependency>
+<!--		<dependency>
 			<groupId>com.github.peichhorn</groupId>
 			<artifactId>lombok-pg</artifactId>
 			<version>0.11.3</version>
-		</dependency>
+		</dependency>-->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

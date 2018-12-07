@@ -1,4 +1,4 @@
-package com.example.utils.excel.sheet.write;
+/*package com.example.utils.excel.sheet.write;
 
 import com.example.utils.excel.enums.PoiExcelType;
 import com.example.utils.excel.exception.PoiException;
@@ -13,9 +13,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.*;
 
-/**
+*//**
  * @author zhuangqianliao
- */
+ *//*
 @Slf4j
 public class WorkbookFileWriter<T> extends AbstractWorkbookWriter<T> {
 
@@ -70,4 +70,4 @@ public class WorkbookFileWriter<T> extends AbstractWorkbookWriter<T> {
         String extension = FilenameUtils.getExtension(file.getName());
         PoiExcelType.from(extension);
     }
-}
+}*/

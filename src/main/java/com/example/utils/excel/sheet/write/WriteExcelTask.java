@@ -1,4 +1,4 @@
-package com.example.utils.excel.sheet.write;
+/*package com.example.utils.excel.sheet.write;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.utils.excel.handler.ErrorHandler;
@@ -13,9 +13,9 @@ import org.apache.poi.ss.usermodel.Sheet;
 import java.util.List;
 import java.util.concurrent.RecursiveAction;
 
-/**
+*//**
  * @author zhuangqianliao
- */
+ *//*
 @Slf4j
 public class WriteExcelTask<T> extends RecursiveAction {
 
@@ -83,11 +83,11 @@ public class WriteExcelTask<T> extends RecursiveAction {
         }
     }
 
-    /**
+    *//**
      * 小任务计算
      * 如果有异常，则此次小任务全部失败，但不会影响到整体失败
      * @return List<T>
-     */
+     *//*
     private void doCompute() {
         if (this.end < this.start) {
             return;
@@ -101,9 +101,9 @@ public class WriteExcelTask<T> extends RecursiveAction {
             log.error("write values to sheet failed! Values: {}",
                     JSONObject.toJSONString(errors), e);
 
-/*            if (this.errorHandler != null) {
+*//*            if (this.errorHandler != null) {
                 this.errorHandler.handle(this.options, errors, e);
-            }*/
+            }*//*
         }
     }
 
@@ -113,4 +113,4 @@ public class WriteExcelTask<T> extends RecursiveAction {
                 .limit(this.end - this.start + 1)
                 .toList();
     }
-}
+}*/

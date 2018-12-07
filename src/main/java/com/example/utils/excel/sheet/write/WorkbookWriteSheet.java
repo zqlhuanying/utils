@@ -1,4 +1,4 @@
-package com.example.utils.excel.sheet.write;
+/*package com.example.utils.excel.sheet.write;
 
 import com.example.utils.DateUtils;
 import com.example.utils.excel.mapper.Mapper;
@@ -16,9 +16,9 @@ import java.lang.reflect.Field;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-/**
+*//**
  * @author zhuangqianliao
- */
+ *//*
 @Slf4j
 public class WorkbookWriteSheet<T> extends AbstractWorkbookSheet<T> {
 
@@ -39,11 +39,11 @@ public class WorkbookWriteSheet<T> extends AbstractWorkbookSheet<T> {
         this(null, null, sheet, options);
     }
 
-    /**
+    *//**
      * 写入Excel
      * @param values: 输出到表格内容
      * @param clazz: 用来输出表头标题
-     */
+     *//*
     protected void write(final Iterable<T> values, final Class clazz) {
         if (!Iterables.isEmpty(values)) {
             writeHeader(clazz);
@@ -80,13 +80,13 @@ public class WorkbookWriteSheet<T> extends AbstractWorkbookSheet<T> {
         return this.writer;
     }
 
-    /**
+    *//**
      * 写入Excel
      * @param start: 数据起始处
      * @param end: 数据终止点
      * @param startRow: 写入表格中行的起始点
      * @param values: 待写入的数据
-     */
+     *//*
     void write(final int start, final int end,
                final int startRow,
                final Iterable<T> values) {
@@ -166,10 +166,10 @@ public class WorkbookWriteSheet<T> extends AbstractWorkbookSheet<T> {
         }
     }
 
-    /**
+    *//**
      * 标题自适应宽度
-     */
+     *//*
     private void autoColumnWidth(Mapper mapper) {
         sheet.setColumnWidth(mapper.getColumnIndex(), mapper.getColumnName().getBytes().length * 256);
     }
-}
+}*/

@@ -26,16 +26,16 @@ public class WorkbookFileReader<T> extends AbstractWorkbookReader<T> {
         super(options);
         this.file = file;
         check(this.file);
+        this.readSheet = new WorkbookReadSheet<>(createWorkbook(), this.options);
     }
 
-    @Override
-    protected Workbook createWorkbook() {
+    private Workbook createWorkbook() {
         return WorkbookHelper.createWorkbook(file);
     }
 
     private void check(File file) {
         if (!file.exists()) {
-            throw new PoiException("file not exists");
+            throw new PoiException(String.format("file[%s] not exists", file.getName()));
         }
 
         String extension = FilenameUtils.getExtension(file.getName());

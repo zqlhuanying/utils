@@ -7,6 +7,7 @@ import com.google.common.cache.LoadingCache;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -20,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * @author zhuangqianliao
  */
 @Slf4j
-public abstract class AbstractWorkbookSheet<T> {
+public abstract class AbstractWorkbookSheet<T> implements WorkBookSheet<T> {
 
     private static final LoadingCache<MethodCacheKey, MethodHandle> METHOD_CACHE = CacheBuilder.newBuilder()
             .maximumSize(1000)
@@ -32,15 +33,24 @@ public abstract class AbstractWorkbookSheet<T> {
                 }
             });
 
+    protected static final DataFormatter DATA_FORMATTER = new DataFormatter();
+
     protected Workbook workbook;
     protected Sheet sheet;
 
+    @Override
     public Workbook getWorkbook() {
         return this.workbook;
     }
 
+    @Override
     public Sheet getSheet() {
         return this.sheet;
+    }
+
+    @Override
+    public int getRows() {
+        return getSheet() == null ? 0 : getSheet().getLastRowNum();
     }
 
     protected static Object doInvoke(Class<?> clazz, String methodName, MethodType methodType,

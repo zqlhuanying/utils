@@ -1,6 +1,5 @@
 package com.example.utils.lombook;
 
-import lombok.EnumId;
 import lombok.Getter;
 
 /**
@@ -13,10 +12,8 @@ public enum MessageTypeEnum {
     PC(1, "PC");
 
     @Getter
-    @EnumId
     private int type;
     @Getter
-    @EnumId
     private String name;
 
     MessageTypeEnum(int type, String name) {

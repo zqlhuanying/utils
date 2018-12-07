@@ -12,23 +12,20 @@ import java.util.List;
  * @author zhuangqianliao
  */
 @Slf4j
-public abstract class AbstractWorkbookReader<T> {
+public abstract class AbstractWorkbookReader<T> implements WorkbookReader<T> {
 
     protected final PoiOptions options;
 
-    private WorkbookReadSheet<T> readSheet;
-    private Workbook workbook;
+    protected WorkbookReadSheet<T> readSheet;
 
     public AbstractWorkbookReader(PoiOptions options) {
         this.options = options;
     }
 
-    /**
-     * 仅支持读取小文件
-     */
+    @Override
     public List<T> read(Class<T> type) {
-        try (Workbook workbook = getWorkbook()) {
-            return getSheet().read(type);
+        try (Workbook workbook = getReadSheet().getWorkbook()) {
+            return getReadSheet().read(type);
         } catch (IOException e) {
             log.error("can not auto-close workbook", e);
         } catch (Exception e) {
@@ -37,31 +34,16 @@ public abstract class AbstractWorkbookReader<T> {
         return Collections.emptyList();
     }
 
-    /**
-     * 获取 ReadSheet
-     * 此时可以支持大文件的读取
-     */
-    public WorkbookReadSheet<T> getSheet() {
-        if (this.readSheet == null) {
-            this.readSheet = createReadSheet();
-        }
-        return this.readSheet;
+    public WorkbookBigReader<T> bigReader() {
+        return new WorkbookBigReader<>(this);
     }
 
-    protected void setSheet(WorkbookReadSheet<T> readSheet) {
+    @Override
+    public WorkbookReadSheet<T> getReadSheet() {
+        return readSheet;
+    }
+
+    public void setReadSheet(WorkbookReadSheet<T> readSheet) {
         this.readSheet = readSheet;
     }
-
-    protected Workbook getWorkbook() {
-        if (this.workbook == null) {
-            this.workbook = createWorkbook();
-        }
-        return this.workbook;
-    }
-
-    private WorkbookReadSheet<T> createReadSheet() {
-        return new WorkbookReadSheet<>(this, getWorkbook().getSheetAt(options.getSheetIndex()), options);
-    }
-
-    protected abstract Workbook createWorkbook();
 }

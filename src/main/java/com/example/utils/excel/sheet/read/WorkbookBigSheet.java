@@ -1,4 +1,4 @@
-package com.example.utils.excel.sheet.read;
+/*package com.example.utils.excel.sheet.read;
 
 import com.alibaba.fastjson.JSON;
 import com.example.utils.excel.exception.PoiOverThresholdException;
@@ -16,34 +16,22 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 
-/**
+*//**
  * @author zhuangqianliao
- */
+ *//*
 @Slf4j
 public class WorkbookBigSheet<T> extends WorkbookReadSheet<T> {
 
     private static final int THREADS = Runtime.getRuntime().availableProcessors();
     private static final ForkJoinPool FORK_JOIN_POOL = new ForkJoinPool(THREADS);
 
-    private static final int THRESHOLD = 0x0000ffff;
-
-    @Getter
-    private ResultAdvice<T> advice;
-    @Getter
-    private ErrorHandler errorHandler;
-
-    public WorkbookBigSheet(AbstractWorkbookReader<T> reader, Sheet sheet, PoiOptions options) {
-        super(reader, sheet, options);
-
-        int threshold = options == null ? THRESHOLD : options.getThreshold();
-        if (sheet.getLastRowNum() > threshold) {
-            throw new PoiOverThresholdException(threshold);
-        }
+    public WorkbookBigSheet(WorkbookBigReader<T> bigReader) {
+        super(bigReader.getReader()., sheet, options);
     }
 
     @Override
     public List<T> read(Class<T> type) {
-        ReadExcelTask<T> task = new TaskBuilder<>(sheet, options, type)
+        ReadExcelTask<T> task = new TaskBuilder<>(, options, type)
                 .setAdvice(advice)
                 .setErrorHandler(errorHandler)
                 .buildReadTask();
@@ -55,14 +43,4 @@ public class WorkbookBigSheet<T> extends WorkbookReadSheet<T> {
             return Collections.emptyList();
         }
     }
-
-    public WorkbookBigSheet<T> setAdvice(ResultAdvice<T> advice) {
-        this.advice = advice;
-        return this;
-    }
-
-    public WorkbookBigSheet<T> setErrorHandler(ErrorHandler errorHandler) {
-        this.errorHandler = errorHandler;
-        return this;
-    }
-}
+}*/

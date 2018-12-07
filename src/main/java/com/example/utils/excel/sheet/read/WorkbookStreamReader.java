@@ -25,10 +25,10 @@ public class WorkbookStreamReader<T> extends AbstractWorkbookReader<T> {
         super(options);
         this.inputStream = inputStream;
         this.excelType = excelType;
+        this.readSheet = new WorkbookReadSheet<>(createWorkbook(), this.options);
     }
 
-    @Override
-    protected Workbook createWorkbook() {
+    private Workbook createWorkbook() {
         return WorkbookHelper.createWorkbook(inputStream, excelType);
     }
 }
