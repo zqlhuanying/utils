@@ -3,8 +3,6 @@ package com.example.utils.excel.sheet.read;
 import com.example.utils.excel.mapper.Mapper;
 import com.example.utils.excel.mapper.Mappers;
 import com.example.utils.excel.option.PoiOptions;
-import com.example.utils.excel.parser.Parser;
-import com.example.utils.excel.parser.Parsers;
 import com.example.utils.excel.sheet.AbstractWorkbookSheet;
 import com.example.utils.excel.sheet.BeanUtils;
 import com.example.utils.excel.sheet.Source;
@@ -89,22 +87,9 @@ public class WorkbookReadSheet<T> extends AbstractWorkbookSheet<T> {
                 log.warn("can not find suitable mapper for column: {}.", cell.getColumnIndex());
                 continue;
             }
-            if (ignoreField(mapper.getField(), options.getIgnoreFields())) {
-                continue;
-            }
-            writeToInstance(instance, cellValue, mapper);
+            writeToInstance(mapper, cellValue, instance);
         }
         return instance;
-    }
-
-    private void writeToInstance(T instance, String cellValue, Mapper<?> mapper) {
-        Parser<?> parser = Parsers.getOrDefault(
-                mapper.getWriteMethodType().parameterType(0),
-                Parsers.defaultParser()
-        );
-
-        BeanUtils.doInvoke(instance.getClass(), mapper.getWriteMethodName(), mapper.getWriteMethodType(),
-                instance, parser.parse(cellValue));
     }
 
     private boolean isValidRow(Row row) {

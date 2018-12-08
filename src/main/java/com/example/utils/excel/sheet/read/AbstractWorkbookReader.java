@@ -38,8 +38,8 @@ public abstract class AbstractWorkbookReader<T>
         return new WorkbookBigReader<>(this);
     }
 
-    public WorkbookCSVReader<T> csvReader() {
-        return new WorkbookCSVReader<>(this);
+    public WorkbookEventReader<T> eventReader() {
+        return new WorkbookEventReader<>(this);
     }
 
     /**

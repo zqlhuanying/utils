@@ -45,9 +45,9 @@ public class PoiPeopleTest {
     }
 
     @Test
-    public void csvFileRead() {
+    public void eventFileRead() {
         List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
-                .csvReader()
+                .eventReader()
                 .read(People.class);
         assert peoples.size() == excelSize;
     }
