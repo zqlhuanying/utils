@@ -44,6 +44,14 @@ public class PoiPeopleTest {
         assert peoples.size() == excelSize;
     }
 
+    @Test
+    public void csvFileRead() {
+        List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
+                .csvReader()
+                .read(People.class);
+        assert peoples.size() == excelSize;
+    }
+
     /**
      * 小文件读取
      */

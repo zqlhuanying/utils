@@ -1,21 +1,11 @@
 package com.example.utils.excel.sheet;
 
 import com.example.utils.CollectionUtil;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import lombok.Data;
-import lombok.experimental.Accessors;
+import com.example.utils.excel.option.PoiOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author zhuangqianliao
@@ -23,78 +13,21 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public abstract class AbstractWorkbookSheet<T> implements WorkBookSheet<T> {
 
-    private static final LoadingCache<MethodCacheKey, MethodHandle> METHOD_CACHE = CacheBuilder.newBuilder()
-            .maximumSize(1000)
-            .expireAfterWrite(30, TimeUnit.MINUTES)
-            .build(new CacheLoader<MethodCacheKey, MethodHandle>() {
-                @Override
-                public MethodHandle load(MethodCacheKey key) throws Exception {
-                    return MethodHandles.lookup().findVirtual(key.getClazz(), key.getMethodName(), key.getMethodType());
-                }
-            });
-
     protected static final DataFormatter DATA_FORMATTER = new DataFormatter();
 
-    protected Workbook workbook;
-    protected Sheet sheet;
+    protected Source<?> source;
+    protected PoiOptions options;
 
     @Override
-    public Workbook getWorkbook() {
-        return this.workbook;
+    public Source<?> getSource() {
+        return source;
     }
 
-    @Override
-    public Sheet getSheet() {
-        return this.sheet;
-    }
-
-    @Override
-    public int getRows() {
-        return getSheet() == null ? 0 : getSheet().getLastRowNum();
-    }
-
-    protected static Object doInvoke(Class<?> clazz, String methodName, MethodType methodType,
-                                     Object o, Object params) {
-        try {
-            MethodCacheKey key = new MethodCacheKey().setClazz(clazz).setMethodName(methodName).setMethodType(methodType);
-            MethodHandle method = METHOD_CACHE.get(key);
-            if (isGetter(methodName)) {
-                return method.invokeWithArguments(o);
-            }
-            return method.invokeWithArguments(o, params);
-        } catch (NoSuchMethodException | IllegalAccessException e) {
-            // can not be happened in runtime lessly
-            log.error("no such method: {}. class: {}", methodName, clazz.getName(), e);
-            throw new RuntimeException("no such method");
-        } catch (Throwable e) {
-            // can not be happened in runtime lessly
-            log.error("invoke method: {} failed! Class: {}", methodName, clazz.getName(), e);
-            throw new RuntimeException("invoke method failed");
-        }
-    }
-
-    protected static <T> T newInstance(Class<T> pojo) {
-        try {
-            return pojo.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            log.error("create class: {} instance failed!", pojo.getName(), e);
-        }
-        throw new RuntimeException("create class instance failed");
+    public PoiOptions getOptions() {
+        return options;
     }
 
     protected static boolean ignoreField(String field, List<String> ignores) {
         return CollectionUtil.isNotEmpty(ignores) && ignores.contains(field);
-    }
-
-    private static boolean isGetter(String methodName) {
-        return methodName.startsWith("get");
-    }
-
-    @Accessors(chain = true)
-    @Data
-    private static class MethodCacheKey {
-        private Class clazz;
-        private String methodName;
-        private MethodType methodType;
     }
 }

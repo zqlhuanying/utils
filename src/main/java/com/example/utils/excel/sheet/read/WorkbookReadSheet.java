@@ -6,10 +6,14 @@ import com.example.utils.excel.option.PoiOptions;
 import com.example.utils.excel.parser.Parser;
 import com.example.utils.excel.parser.Parsers;
 import com.example.utils.excel.sheet.AbstractWorkbookSheet;
+import com.example.utils.excel.sheet.BeanUtils;
+import com.example.utils.excel.sheet.Source;
+import com.example.utils.excel.sheet.WorkbookHelper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.Collections;
@@ -24,19 +28,19 @@ import static com.google.common.base.Preconditions.checkArgument;
 @Slf4j
 public class WorkbookReadSheet<T> extends AbstractWorkbookSheet<T> {
 
-    final PoiOptions options;
+    private volatile Workbook workbook;
+    private volatile Sheet sheet;
 
-    public WorkbookReadSheet(Workbook workbook, PoiOptions options) {
-        this.workbook = workbook;
-        this.sheet = workbook.getSheetAt(options.getSheetIndex());
+    public WorkbookReadSheet(Source<?> source, PoiOptions options) {
+        this.source = source;
         this.options = options;
     }
 
     protected List<T> read(Class<T> type) {
-        if (this.getRows() <= 0) {
+        if (getRows() <= 0) {
             return Collections.emptyList();
         }
-        return read(options.getSkip(), sheet.getLastRowNum(), type);
+        return read(options.getSkip(), getSheet().getLastRowNum(), type);
     }
 
     protected List<T> read(final int startRow, final int endRow, final Class<T> type) {
@@ -45,16 +49,36 @@ public class WorkbookReadSheet<T> extends AbstractWorkbookSheet<T> {
 
         List<T> res = Lists.newArrayListWithCapacity(endRow - startRow);
         for (int i = startRow; i <= endRow; i++) {
-            if (isValidRow(sheet.getRow(i))) {
-                T row = doConvert(sheet.getRow(i), type);
+            if (isValidRow(getSheet().getRow(i))) {
+                T row = doConvert(getSheet().getRow(i), type);
                 res.add(row);
             }
         }
         return res;
     }
 
+    public Workbook getWorkbook() {
+        if (this.workbook == null) {
+            synchronized (this) {
+                if (this.workbook == null) {
+                    this.workbook = WorkbookHelper.createWorkbook(this.source);
+                }
+            }
+        }
+        return this.workbook;
+    }
+
+    public Sheet getSheet() {
+        this.sheet = getWorkbook().getSheetAt(this.options.getSheetIndex());
+        return this.sheet;
+    }
+
+    public int getRows() {
+        return getSheet() == null ? 0 : getSheet().getLastRowNum();
+    }
+
     private T doConvert(Row row, Class<T> type) {
-        T instance = newInstance(type);
+        T instance = BeanUtils.newInstance(type);
 
         for (Iterator<Cell> iterator = row.cellIterator(); iterator.hasNext();) {
             Cell cell = iterator.next();
@@ -78,7 +102,7 @@ public class WorkbookReadSheet<T> extends AbstractWorkbookSheet<T> {
                 Parsers.defaultParser()
         );
 
-        doInvoke(instance.getClass(), mapper.getWriteMethodName(), mapper.getWriteMethodType(),
+        BeanUtils.doInvoke(instance.getClass(), mapper.getWriteMethodName(), mapper.getWriteMethodType(),
                 instance, parser.parse(cellValue));
     }
 

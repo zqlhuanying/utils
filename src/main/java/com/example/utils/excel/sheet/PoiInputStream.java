@@ -7,7 +7,7 @@ import java.io.InputStream;
 /**
  * @author zhuangqianliao
  */
-public final class PoiInputStream<T extends InputStream> {
+public final class PoiInputStream<T extends InputStream> implements Source<T> {
 
     private final T t;
     private final PoiExcelType type;
@@ -17,11 +17,13 @@ public final class PoiInputStream<T extends InputStream> {
         this.type = type;
     }
 
-    public T stream() {
-        return t;
-    }
-
+    @Override
     public PoiExcelType type() {
         return type;
+    }
+
+    @Override
+    public T get() {
+        return t;
     }
 }

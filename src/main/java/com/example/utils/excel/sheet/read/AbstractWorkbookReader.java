@@ -18,15 +18,12 @@ import java.util.List;
 public abstract class AbstractWorkbookReader<T>
         implements WorkbookReader<T>, ForkJoin<T, Row> {
 
-    @Getter
-    protected final PoiOptions options;
-
     protected WorkbookReadSheet<T> readSheet;
 
-    public AbstractWorkbookReader(PoiOptions options) {
-        this.options = options;
-    }
-
+    /**
+     * 资源在读取完毕后，会及时释放
+     * @param type the given type
+     */
     @Override
     public List<T> read(Class<T> type) {
         try (Workbook workbook = getReadSheet().getWorkbook()) {
@@ -43,6 +40,16 @@ public abstract class AbstractWorkbookReader<T>
         return new WorkbookBigReader<>(this);
     }
 
+    public WorkbookCSVReader<T> csvReader() {
+        return new WorkbookCSVReader<>(this);
+    }
+
+    /**
+     * 由于是片段式读取，所以资源的释放需要由调用方来维护
+     * @param start the start index
+     * @param end the end index (include)
+     * @param type the given type
+     */
     @Override
     public List<T> read(int start, int end, Class<T> type) {
         return getReadSheet().read(start, end, type);
@@ -63,5 +70,10 @@ public abstract class AbstractWorkbookReader<T>
 
     public void setReadSheet(WorkbookReadSheet<T> readSheet) {
         this.readSheet = readSheet;
+    }
+
+    @Override
+    public PoiOptions getOptions() {
+        return getReadSheet().getOptions();
     }
 }

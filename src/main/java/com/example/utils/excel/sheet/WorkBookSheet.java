@@ -1,16 +1,13 @@
 package com.example.utils.excel.sheet;
 
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import com.example.utils.excel.option.PoiOptions;
 
 /**
  * @author zhuangqianliao
  */
 public interface WorkBookSheet<T> {
 
-    Workbook getWorkbook();
+    Source<?> getSource();
 
-    Sheet getSheet();
-
-    int getRows();
+    PoiOptions getOptions();
 }

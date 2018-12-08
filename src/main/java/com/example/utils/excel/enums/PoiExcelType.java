@@ -60,7 +60,7 @@ public enum PoiExcelType {
      */
     public Workbook createWorkbook(PoiFile<? extends File> file) {
         try {
-            return WorkbookFactory.create(file.file());
+            return WorkbookFactory.create(file.get());
         } catch (IOException | InvalidFormatException e) {
             log.error("can not create workbook for file: {}", file.name(), e);
             throw new PoiException("can not create workbook", e);
@@ -72,7 +72,7 @@ public enum PoiExcelType {
      */
     public Workbook createWorkbook(PoiInputStream<? extends InputStream> inputStream) {
         try {
-            return WorkbookFactory.create(inputStream.stream());
+            return WorkbookFactory.create(inputStream.get());
         } catch (IOException | InvalidFormatException e) {
             log.error("can not create workbook", e);
             throw new PoiException("can not create workbook", e);

@@ -1,4 +1,4 @@
-package com.example.utils.excel.sheet.write1;
+/*package com.example.utils.excel.sheet.write1;
 
 import com.example.utils.excel.exception.PoiExcelTypeException;
 import com.example.utils.excel.option.PoiOptions;
@@ -6,9 +6,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-/**
+*//**
  * @author qianliao.zhuang
- */
+ *//*
 public class WorkbookStreamWriteSheet1<T> extends WorkbookWriteSheet1<T> {
 
     private static final int DEFAULT_WINDOW_SIZE = 100;
@@ -37,4 +37,4 @@ public class WorkbookStreamWriteSheet1<T> extends WorkbookWriteSheet1<T> {
         }
         return new SXSSFWorkbook((XSSFWorkbook) this.workbook, DEFAULT_WINDOW_SIZE);
     }
-}
+}*/

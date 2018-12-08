@@ -1,12 +1,12 @@
-package com.example.utils.excel.sheet.write1;
+/*package com.example.utils.excel.sheet.write1;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-/**
+*//**
  * @author qianliao.zhuang
- */
+ *//*
 @Slf4j
 public class WorkbookSXSSFWriter<T> implements WorkbookWriter<T> {
 
@@ -26,4 +26,4 @@ public class WorkbookSXSSFWriter<T> implements WorkbookWriter<T> {
     public String write(List<T> values, Class<T> clazz) {
         return this.writer.write(values, clazz);
     }
-}
+}*/
