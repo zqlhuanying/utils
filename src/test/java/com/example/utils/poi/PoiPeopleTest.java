@@ -17,6 +17,8 @@ import java.util.List;
 public class PoiPeopleTest {
 
     private static final String dir = "D:\\1\\";
+    private static final String smallFilePath = dir + "people.xlsx";
+    private static final int excelSize = 9;
 
     @Before
     public void init() {
@@ -28,20 +30,18 @@ public class PoiPeopleTest {
      */
     @Test
     public void smallFileRead() {
-        String path = dir + "people.xlsx";
-        List<People> peoples = POI.<People>fromExcel(new File(path))
+        List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
                 .read(People.class);
-        assert peoples.size() == 2;
+        assert peoples.size() == excelSize;
     }
 
     @Test
     public void bigFileRead() {
-        String path = dir + "people.xlsx";
-        List<People> peoples = POI.<People>fromExcel(new File(path))
+        List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
                 .bigReader()
-                .setTaskThreshold(1)
+                .setTaskThreshold(2)
                 .read(People.class);
-        assert peoples.size() == 2;
+        assert peoples.size() == excelSize;
     }
 
     /**
@@ -49,30 +49,28 @@ public class PoiPeopleTest {
      */
     @Test
     public void smallStreamRead() throws Exception {
-        String path = dir + "people.xlsx";
-        List<People> peoples = POI.<People>fromExcel(new FileInputStream(path), PoiExcelType.XLSX)
+        List<People> peoples = POI.<People>fromExcel(new FileInputStream(smallFilePath), PoiExcelType.XLSX)
                 .read(People.class);
-        assert peoples.size() == 2;
+        assert peoples.size() == excelSize;
     }
 
     @Test
     public void bigStreamRead() throws Exception {
-        String path = dir + "people.xlsx";
-        List<People> peoples = POI.<People>fromExcel(new FileInputStream(path), PoiExcelType.XLSX)
+        List<People> peoples = POI.<People>fromExcel(new FileInputStream(smallFilePath), PoiExcelType.XLSX)
                 .bigReader()
                 .read(People.class);
-        assert peoples.size() == 2;
+        assert peoples.size() == excelSize;
     }
 
     private static class PeopleMapper extends Mapper<People> {
 
-        public static void init() {
+        static void init() {
             Mappers.registry(new PeopleMapper(0, "姓名", "name"));
             Mappers.registry(new PeopleMapper(1, "姓氏", "firstName"));
             Mappers.registry(new PeopleMapper(2, "名字", "lastName"));
         }
 
-        public PeopleMapper(int columnIndex, String columnName, String fieldName) {
+        PeopleMapper(int columnIndex, String columnName, String fieldName) {
             super(columnIndex, columnName, fieldName, People.class);
         }
     }
