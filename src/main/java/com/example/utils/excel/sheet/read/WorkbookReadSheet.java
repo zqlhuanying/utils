@@ -38,7 +38,7 @@ public class WorkbookReadSheet<T> extends AbstractWorkbookSheet<T> {
         if (getRows() <= 0) {
             return Collections.emptyList();
         }
-        return read(options.getSkip(), getSheet().getLastRowNum(), type);
+        return read(options.getSkip(), getRows(), type);
     }
 
     protected List<T> read(final int startRow, final int endRow, final Class<T> type) {

@@ -53,20 +53,20 @@ public class WorkbookBigReader<T, R> extends FilterWorkbookReader<T>{
 
     @Override
     public List<T> read(Class<T> type) {
-        int threshold = getReadSheet().getOptions() == null ?
-                THRESHOLD : getReadSheet().getOptions().getThreshold();
-        if (getReadSheet().getRows() > threshold) {
+        int threshold = getReader().getOptions() == null ?
+                THRESHOLD : getReader().getOptions().getThreshold();
+        if (getReader().getRows() > threshold) {
             throw new PoiOverThresholdException(threshold);
         }
 
         @SuppressWarnings("unchecked")
         ForkJoin<T, R> forkJoin = (ForkJoin<T, R>) getReader();
-        int start = getReadSheet().getOptions().getSkip();
-        int end = getReadSheet().getRows();
+        int start = getReader().getOptions().getSkip();
+        int end = getReader().getRows();
         ReadExcelTask<T, R> task =
                 new TaskBuilder<>(
                         forkJoin, start, end, type,
-                        getReadSheet().getOptions()
+                        getReader().getOptions()
                 )
                 .setAdvice(this.advice)
                 .setErrorHandler(this.errorHandler)

@@ -1,6 +1,7 @@
 package com.example.utils.excel.sheet.read;
 
-import com.example.utils.excel.sheet.WorkbookSheet;
+import com.example.utils.excel.option.PoiOptions;
+import com.example.utils.excel.sheet.Source;
 import lombok.Getter;
 
 import java.util.List;
@@ -23,7 +24,17 @@ public class FilterWorkbookReader<T> implements WorkbookReader<T> {
     }
 
     @Override
-    public WorkbookSheet<T> getReadSheet() {
-        return this.reader.getReadSheet();
+    public Source<?> getSource() {
+        return this.reader.getSource();
+    }
+
+    @Override
+    public PoiOptions getOptions() {
+        return this.reader.getOptions();
+    }
+
+    @Override
+    public int getRows() {
+        return this.reader.getRows();
     }
 }

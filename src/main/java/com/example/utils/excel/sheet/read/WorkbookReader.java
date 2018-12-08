@@ -1,6 +1,7 @@
 package com.example.utils.excel.sheet.read;
 
-import com.example.utils.excel.sheet.WorkbookSheet;
+import com.example.utils.excel.option.PoiOptions;
+import com.example.utils.excel.sheet.Source;
 
 import java.util.List;
 
@@ -10,10 +11,13 @@ import java.util.List;
 public interface WorkbookReader<T> {
 
     /**
-     * delegate
-     * @return readSheet
+     * DataSource
      */
-    WorkbookSheet<T> getReadSheet();
+    Source<?> getSource();
+
+    PoiOptions getOptions();
+
+    int getRows();
 
     /**
      * Read from DataSource to the given type
