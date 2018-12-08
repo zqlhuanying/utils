@@ -1,8 +1,6 @@
 package com.example.utils.excel.sheet.read;
 
-import com.example.utils.excel.option.PoiOptions;
 import com.google.common.collect.FluentIterable;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -64,16 +62,16 @@ public abstract class AbstractWorkbookReader<T>
     }
 
     @Override
+    public void release() throws IOException {
+        getReadSheet().getWorkbook().close();
+    }
+
+    @Override
     public WorkbookReadSheet<T> getReadSheet() {
         return readSheet;
     }
 
     public void setReadSheet(WorkbookReadSheet<T> readSheet) {
         this.readSheet = readSheet;
-    }
-
-    @Override
-    public PoiOptions getOptions() {
-        return getReadSheet().getOptions();
     }
 }

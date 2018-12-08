@@ -49,24 +49,24 @@ public class WorkbookBigReader<T, R> extends FilterWorkbookReader<T>{
                     String.format("WorkbookReader[%s] can not supported fork/join", getReader().getClass().getName())
             );
         }
-
-        int threshold = getOptions() == null ?
-                THRESHOLD : getOptions().getThreshold();
-        if (getReadSheet().getRows() > threshold) {
-            throw new PoiOverThresholdException(threshold);
-        }
     }
 
     @Override
     public List<T> read(Class<T> type) {
+        int threshold = getReadSheet().getOptions() == null ?
+                THRESHOLD : getReadSheet().getOptions().getThreshold();
+        if (getReadSheet().getRows() > threshold) {
+            throw new PoiOverThresholdException(threshold);
+        }
+
         @SuppressWarnings("unchecked")
         ForkJoin<T, R> forkJoin = (ForkJoin<T, R>) getReader();
-        int start = getOptions().getSkip();
+        int start = getReadSheet().getOptions().getSkip();
         int end = getReadSheet().getRows();
         ReadExcelTask<T, R> task =
                 new TaskBuilder<>(
                         forkJoin, start, end, type,
-                        getOptions()
+                        getReadSheet().getOptions()
                 )
                 .setAdvice(this.advice)
                 .setErrorHandler(this.errorHandler)
@@ -80,9 +80,9 @@ public class WorkbookBigReader<T, R> extends FilterWorkbookReader<T>{
             return Collections.emptyList();
         } finally {
             try {
-                getReadSheet().getWorkbook().close();
+                forkJoin.release();
             } catch (IOException e) {
-                log.error("can not close workbook", e);
+                log.error("can not release the resource", e);
             }
         }
     }

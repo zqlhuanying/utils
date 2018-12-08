@@ -5,9 +5,11 @@ import com.example.utils.excel.option.PoiOptions;
 /**
  * @author zhuangqianliao
  */
-public interface WorkBookSheet<T> {
+public interface WorkbookSheet<T> {
 
     Source<?> getSource();
+
+    int getRows();
 
     PoiOptions getOptions();
 }

@@ -73,6 +73,7 @@ public class WorkbookReadSheet<T> extends AbstractWorkbookSheet<T> {
         return this.sheet;
     }
 
+    @Override
     public int getRows() {
         return getSheet() == null ? 0 : getSheet().getLastRowNum();
     }

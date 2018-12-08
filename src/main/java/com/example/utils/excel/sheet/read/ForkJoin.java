@@ -1,5 +1,6 @@
 package com.example.utils.excel.sheet.read;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -23,4 +24,9 @@ public interface ForkJoin<T, R> {
      * @return the errors between start and end
      */
     List<R> errors(int start, int end);
+
+    /**
+     * release the resource
+     */
+    void release() throws IOException;
 }
