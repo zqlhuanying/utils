@@ -137,7 +137,6 @@ public class WorkbookBigReader<T, R> extends FilterWorkbookReader<T>{
         }
     }
 
-    @Slf4j
     private static class ReadExcelTask<T, R> extends RecursiveTask<List<T>> {
 
         private static final int DEFAULT_THRESHOLD = 20;

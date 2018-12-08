@@ -2,7 +2,6 @@ package com.example.utils.excel.sheet;
 
 import com.example.utils.excel.enums.PoiExcelType;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.File;
@@ -18,12 +17,11 @@ public final class WorkbookHelper {
         return excelType.createWorkbook();
     }
 
-    public static Workbook createWorkbook(File file) {
-        String extension = FilenameUtils.getExtension(file.getName());
-        return PoiExcelType.from(extension).createWorkbook(file);
+    public static Workbook createWorkbook(PoiFile<? extends File> file) {
+        return PoiExcelType.from(file.extension()).createWorkbook(file);
     }
 
-    public static Workbook createWorkbook(InputStream inputStream, PoiExcelType excelType) {
-        return excelType.createWorkbook(inputStream);
+    public static Workbook createWorkbook(PoiInputStream<? extends InputStream> inputStream) {
+        return inputStream.type().createWorkbook(inputStream);
     }
 }
