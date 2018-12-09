@@ -3,7 +3,10 @@ package com.example.utils.excel.sheet.read;
 import com.example.utils.excel.enums.PoiExcelType;
 import com.example.utils.excel.exception.PoiExcelTypeException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.openxml4j.opc.OPCPackage;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,8 +29,14 @@ public class WorkbookEventReader<T> extends FilterWorkbookReader<T> {
 
     @Override
     public List<T> read(Class<T> type) {
-        // todo 资源释放
-        return this.eventSheet.read(type);
+        try (OPCPackage pkg = this.eventSheet.getOPCPackage()){
+            return this.eventSheet.read(type);
+        } catch (IOException e) {
+            log.error("can not auto-close OPCPackage", e);
+        } catch (Exception e) {
+            log.error("read file failed", e);
+        }
+        return Collections.emptyList();
     }
 
     @Override

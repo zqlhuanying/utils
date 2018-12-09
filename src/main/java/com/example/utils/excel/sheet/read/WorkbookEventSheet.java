@@ -7,7 +7,6 @@ import com.example.utils.excel.sheet.AbstractWorkbookSheet;
 import com.example.utils.excel.sheet.BeanUtils;
 import com.example.utils.excel.sheet.OPCPackageHelper;
 import com.example.utils.excel.sheet.Source;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
@@ -36,20 +35,23 @@ import java.util.List;
 @Slf4j
 public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
 
+    private volatile OPCPackage pkg;
+
     public WorkbookEventSheet(Source<?> source, PoiOptions options) {
         this.source = source;
         this.options = options;
     }
 
     protected List<T> read(Class<T> type) {
+        String sheetId = "rId" + String.valueOf(getOptions().getSheetIndex() + 1);
         try {
-            OPCPackage pkg = OPCPackageHelper.open(getSource());
-            XSSFReader reader = new XSSFReader(pkg);
-            InputStream sheetInputStream = Iterators.get(reader.getSheetsData(), getOptions().getSheetIndex());
+            XSSFReader reader = new XSSFReader(getOPCPackage());
+            // todo 释放
+            InputStream sheetInputStream = reader.getSheet(sheetId);
 
             return processSheet(
                     reader.getStylesTable(),
-                    new ReadOnlySharedStringsTable(pkg),
+                    new ReadOnlySharedStringsTable(getOPCPackage()),
                     sheetInputStream,
                     type, getOptions().getSkip(), getRows());
         } catch (OpenXML4JException | IOException | SAXException | ParserConfigurationException e) {
@@ -62,6 +64,17 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
     public int getRows() {
         // todo
         return 1000;
+    }
+
+    public OPCPackage getOPCPackage() {
+        if (pkg == null) {
+            synchronized (this) {
+                if (pkg == null) {
+                    pkg = OPCPackageHelper.open(getSource());
+                }
+            }
+        }
+        return pkg;
     }
 
     private List<T> processSheet(StylesTable stylesTable,
