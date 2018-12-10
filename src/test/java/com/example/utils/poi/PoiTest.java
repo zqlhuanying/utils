@@ -92,4 +92,19 @@ public class PoiTest {
         System.out.println("读取耗时：" + (end - start));
         assert policies.size() == 60036;
     }
+
+    @Test
+    public void smallFileWrite() {
+        String in = dir + "policy.xlsx";
+        String out = dir + "out.xlsx";
+        List<Policy> policies = POI.<Policy>fromExcel(new File(in))
+                .eventReader()
+                .read(Policy.class);
+
+        String path = POI.<Policy>writeExcel(new File(out))
+                .sxssfWriter()
+                .write(policies, Policy.class);
+
+        assert path.equals(out);
+    }
 }

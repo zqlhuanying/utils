@@ -40,10 +40,10 @@ public class WorkbookFileWriter1<T> extends AbstractWorkbookWriter1<T, String> {
     @Override
     public String save(OutputStream outputStream) {
         try {
-            return storageService.store(this.file.get());
+            return getStorage().store(this.file.get());
         } finally {
             try {
-                if (!(storageService instanceof LocalStorage)) {
+                if (!(getStorage() instanceof LocalStorage)) {
                     FileUtils.forceDelete(this.file.get());
                 }
             } catch (IOException e) {

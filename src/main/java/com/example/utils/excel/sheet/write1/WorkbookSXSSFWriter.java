@@ -35,13 +35,13 @@ public class WorkbookSXSSFWriter<T, R> extends FilterWorkbookWriter<T, R> {
 
     @Override
     public R write(List<T> values, Class<T> clazz) {
+        OutputStream output = null;
         try (
                 Workbook workbook = getWriteSheet().getWorkbook()
         ) {
-            OutputStream output = getOutputStream();
+            output = getOutputStream();
             getWriteSheet().write(values, clazz);
             workbook.write(output);
-            return save(output);
         } catch (IOException e) {
             log.error("can not auto-close workbook", e);
             return null;
@@ -50,9 +50,10 @@ public class WorkbookSXSSFWriter<T, R> extends FilterWorkbookWriter<T, R> {
                     JSONObject.toJSONString(values), e);
             return null;
         }
+        return save(output);
     }
 
-    public WorkbookWriteSheet1<T> getWriteSheet() {
+    public WorkbookSXSSFWriteSheet<T> getWriteSheet() {
         return this.writeSheet;
     }
 }

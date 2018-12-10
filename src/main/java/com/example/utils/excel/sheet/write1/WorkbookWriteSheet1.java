@@ -33,7 +33,7 @@ public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
 
     private volatile Workbook workbook;
     private volatile Sheet sheet;
-    protected CellStyleHandler<T> cellStyleHandler;
+    private CellStyleHandler<T> cellStyleHandler;
 
     public WorkbookWriteSheet1(Source<?> source, PoiOptions options) {
         this.source = source;

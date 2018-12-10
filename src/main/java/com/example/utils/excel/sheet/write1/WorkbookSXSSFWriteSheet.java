@@ -29,6 +29,6 @@ public class WorkbookSXSSFWriteSheet<T> extends WorkbookWriteSheet1<T> {
 
     @Override
     public Workbook getWorkbook() {
-        return new SXSSFWorkbook((XSSFWorkbook) super.getWorkbook(), DEFAULT_WINDOW_SIZE);
+        return new SXSSFWorkbook((XSSFWorkbook) super.getWorkbook(), getRowAccessWindowSize());
     }
 }

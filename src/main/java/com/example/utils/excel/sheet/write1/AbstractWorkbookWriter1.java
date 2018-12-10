@@ -26,7 +26,7 @@ public abstract class AbstractWorkbookWriter1<T, R> implements WorkbookWriter<T,
     static final StorageService DEFAULT_STORAGE_SERVICE = new LocalStorage();
 
     protected WorkbookWriteSheet1<T> writeSheet;
-    protected final StorageService storageService;
+    private StorageService storageService;
 
     public AbstractWorkbookWriter1(StorageService storageService) {
         this.storageService = storageService;
@@ -34,13 +34,13 @@ public abstract class AbstractWorkbookWriter1<T, R> implements WorkbookWriter<T,
 
     @Override
     public R write(final List<T> values, final Class<T> clazz) {
+        OutputStream output = null;
         try (
                 Workbook workbook = getWriteSheet().getWorkbook()
         ) {
-            OutputStream output = getOutputStream();
+            output = getOutputStream();
             getWriteSheet().write(values, clazz);
             workbook.write(output);
-            return save(output);
         } catch (IOException e) {
             log.error("can not auto-close workbook", e);
             return null;
@@ -49,6 +49,7 @@ public abstract class AbstractWorkbookWriter1<T, R> implements WorkbookWriter<T,
                     JSONObject.toJSONString(values), e);
             return null;
         }
+        return save(output);
     }
 
     public WorkbookWriteSheet1<T> getWriteSheet() {
