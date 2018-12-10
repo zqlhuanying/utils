@@ -37,7 +37,9 @@ public class WorkbookBigReader<T, R> extends FilterWorkbookReader<T>{
     private ResultAdvice<T> advice;
     @Getter
     private ErrorHandler<R> errorHandler;
-    // small task threshold
+    /**
+     * small task threshold
+     */
     @Getter
     private Integer taskThreshold;
 
@@ -200,7 +202,7 @@ public class WorkbookBigReader<T, R> extends FilterWorkbookReader<T>{
                         this.advice, this.errorHandler, this.threshold
                 );
                 ReadExcelTask<T, R> rightTask = new ReadExcelTask<>(
-                        this.reader, middle + 1, this.end, this.type,
+                        this.reader, middle, this.end, this.type,
                         this.options,
                         this.advice, this.errorHandler, this.threshold
                 );

@@ -46,7 +46,7 @@ public class WorkbookReadSheet<T> extends AbstractWorkbookSheet<T> {
         checkArgument(endRow >= startRow, "end must be glt start");
 
         List<T> res = Lists.newArrayListWithCapacity(endRow - startRow);
-        for (int i = startRow; i <= endRow; i++) {
+        for (int i = startRow; i < endRow; i++) {
             if (isValidRow(getSheet().getRow(i))) {
                 T row = doConvert(getSheet().getRow(i), type);
                 res.add(row);
@@ -73,7 +73,7 @@ public class WorkbookReadSheet<T> extends AbstractWorkbookSheet<T> {
 
     @Override
     public int getRows() {
-        return getSheet() == null ? 0 : getSheet().getLastRowNum();
+        return getSheet() == null ? 0 : getSheet().getLastRowNum() + 1;
     }
 
     private T doConvert(Row row, Class<T> type) {

@@ -19,15 +19,13 @@ public class PoiPeopleTest {
     private static final String dir = "D:\\1\\";
     private static final String smallFilePath = dir + "people.xlsx";
     private static final int excelSize = 9;
+    private static final int taskThreshold = 2;
 
     @Before
     public void init() {
         PeopleMapper.init();
     }
 
-    /**
-     * 小文件读取
-     */
     @Test
     public void smallFileRead() {
         List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
@@ -39,22 +37,29 @@ public class PoiPeopleTest {
     public void bigFileRead() {
         List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
                 .bigReader()
-                .setTaskThreshold(2)
+                .setTaskThreshold(taskThreshold)
                 .read(People.class);
         assert peoples.size() == excelSize;
     }
 
     @Test
-    public void eventFileRead() {
+    public void smallFileEventRead() {
         List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
                 .eventReader()
                 .read(People.class);
         assert peoples.size() == excelSize;
     }
 
-    /**
-     * 小文件读取
-     */
+    @Test
+    public void bigFileEventRead() {
+        List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
+                .eventReader()
+                .bigReader()
+                .setTaskThreshold(taskThreshold)
+                .read(People.class);
+        assert peoples.size() == excelSize;
+    }
+
     @Test
     public void smallStreamRead() throws Exception {
         List<People> peoples = POI.<People>fromExcel(new FileInputStream(smallFilePath), PoiExcelType.XLSX)
@@ -66,10 +71,28 @@ public class PoiPeopleTest {
     public void bigStreamRead() throws Exception {
         List<People> peoples = POI.<People>fromExcel(new FileInputStream(smallFilePath), PoiExcelType.XLSX)
                 .bigReader()
+                .setTaskThreshold(taskThreshold)
                 .read(People.class);
         assert peoples.size() == excelSize;
     }
 
+    @Test
+    public void smallStreamEventRead() throws Exception {
+        List<People> peoples = POI.<People>fromExcel(new FileInputStream(smallFilePath), PoiExcelType.XLSX)
+                .eventReader()
+                .read(People.class);
+        assert peoples.size() == excelSize;
+    }
+
+    @Test
+    public void bigStreamEventRead() throws Exception {
+        List<People> peoples = POI.<People>fromExcel(new FileInputStream(smallFilePath), PoiExcelType.XLSX)
+                .eventReader()
+                .bigReader()
+                .setTaskThreshold(taskThreshold)
+                .read(People.class);
+        assert peoples.size() == excelSize;
+    }
     private static class PeopleMapper extends Mapper<People> {
 
         static void init() {

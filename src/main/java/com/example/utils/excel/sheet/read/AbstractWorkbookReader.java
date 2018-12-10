@@ -46,9 +46,6 @@ public abstract class AbstractWorkbookReader<T>
 
     /**
      * 由于是片段式读取，所以资源的释放需要由调用方来维护
-     * @param start the start index
-     * @param end the end index (include)
-     * @param type the given type
      */
     @Override
     public List<T> read(int start, int end, Class<T> type) {
@@ -59,7 +56,7 @@ public abstract class AbstractWorkbookReader<T>
     public List<Row> errors(int start, int end) {
         return FluentIterable.from(getReadSheet().getSheet())
                 .skip(start)
-                .limit(end - start + 1)
+                .limit(end - start)
                 .toList();
     }
 

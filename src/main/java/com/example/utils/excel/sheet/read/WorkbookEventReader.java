@@ -13,7 +13,8 @@ import java.util.List;
  * @author qianliao.zhuang
  */
 @Slf4j
-public class WorkbookEventReader<T> extends FilterWorkbookReader<T> {
+public class WorkbookEventReader<T> extends FilterWorkbookReader<T>
+        implements ForkJoin<T, Object> {
 
     private WorkbookEventSheet<T> eventSheet;
 
@@ -37,6 +38,26 @@ public class WorkbookEventReader<T> extends FilterWorkbookReader<T> {
             log.error("read file failed", e);
         }
         return Collections.emptyList();
+    }
+
+    public WorkbookBigReader<T, Object> bigReader() {
+        return new WorkbookBigReader<>(this);
+    }
+
+    @Override
+    public List<T> read(int start, int end, Class<T> type) {
+        return this.eventSheet.read(start, end, type);
+    }
+
+    @Override
+    public List<Object> errors(int start, int end) {
+        // todo
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void release() throws IOException {
+        this.eventSheet.getOPCPackage().close();
     }
 
     @Override

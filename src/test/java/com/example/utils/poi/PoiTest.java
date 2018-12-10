@@ -40,10 +40,13 @@ public class PoiTest {
      */
     @Test
     public void noneOutOfMemoryTest() {
+        long start = System.currentTimeMillis();
         String path = dir + "policy10000.xlsx";
         List<Policy> policies = POI.<Policy>fromExcel(new File(path))
                 .eventReader()
                 .read(Policy.class);
+        long end = System.currentTimeMillis();
+        System.out.println("读取耗时：" + (end - start));
         assert policies.size() == 60036;
     }
 
@@ -55,19 +58,12 @@ public class PoiTest {
     @Test
     public void noneOutOfMemoryParallelTest() {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
-        String path = dir + "policy10000.xlsx";
         long start = System.currentTimeMillis();
         for (int i = 0; i < 20; i++) {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    long start = System.currentTimeMillis();
-                    List<Policy> policies = POI.<Policy>fromExcel(new File(path))
-                            .eventReader()
-                            .read(Policy.class);
-                    long end = System.currentTimeMillis();
-                    System.out.println("耗时: " + (end - start));
-                    assert policies.size() == 60036;
+                    noneOutOfMemoryTest();
                 }
             });
         }
@@ -79,5 +75,21 @@ public class PoiTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Fork/Join框架和 POI Event 驱动事件的结合
+     */
+    @Test
+    public void bigFileEventTest() {
+        long start = System.currentTimeMillis();
+        String path = dir + "policy10000.xlsx";
+        List<Policy> policies = POI.<Policy>fromExcel(new File(path))
+                .eventReader()
+                .bigReader()
+                .read(Policy.class);
+        long end = System.currentTimeMillis();
+        System.out.println("读取耗时：" + (end - start));
+        assert policies.size() == 60036;
     }
 }

@@ -11,7 +11,7 @@ public interface ForkJoin<T, R> {
     /**
      * Fork/Join
      * @param start the start index
-     * @param end the end index (include)
+     * @param end the end index (exclude)
      * @param type the given type
      * @return {@code List<T>}
      */
