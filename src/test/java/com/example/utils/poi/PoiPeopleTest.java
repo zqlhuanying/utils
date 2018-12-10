@@ -7,8 +7,7 @@ import com.example.utils.excel.mapper.Mappers;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.util.List;
 
 /**
@@ -96,15 +95,59 @@ public class PoiPeopleTest {
 
     @Test
     public void smallFileWrite() {
-        String out = dir + "out.xlsx";
         List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
                 .eventReader()
                 .read(People.class);
 
+        String out = dir + "outFile.xlsx";
         String path = POI.<People>writeExcel(new File(out))
                 .write(peoples, People.class);
 
-        assert path.equals(out);
+        List<People> peoples0 = POI.<People>fromExcel(new File(path))
+                .eventReader()
+                .read(People.class);
+        assert peoples0.size() == excelSize;
+    }
+
+    @Test
+    public void smallFileSXSSFWrite() {
+        List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
+                .eventReader()
+                .read(People.class);
+
+        String out = dir + "outFileSXSSF.xlsx";
+        String path = POI.<People>writeExcel(new File(out))
+                .sxssfWriter()
+                .write(peoples, People.class);
+
+        List<People> peoples0 = POI.<People>fromExcel(new File(path))
+                .eventReader()
+                .read(People.class);
+        assert peoples0.size() == excelSize;
+    }
+
+    @Test
+    public void smallStreamWrite() throws Exception {
+        List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
+                .eventReader()
+                .read(People.class);
+
+        OutputStream byteArrayOutputStream =
+                POI.<People>writeExcel(new ByteArrayOutputStream(), PoiExcelType.XLSX)
+                .sxssfWriter()
+                .write(peoples, People.class);
+
+        // 输出到文件
+        String out = dir + "outStream.xlsx";
+        OutputStream fileOutput = new FileOutputStream(out);
+        ((ByteArrayOutputStream) byteArrayOutputStream).writeTo(fileOutput);
+        fileOutput.flush();
+        fileOutput.close();
+
+        List<People> peoples0 = POI.<People>fromExcel(new File(out))
+                .eventReader()
+                .read(People.class);
+        assert peoples0.size() == excelSize;
     }
 
     private static class PeopleMapper extends Mapper<People> {

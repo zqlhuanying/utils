@@ -5,16 +5,15 @@ import com.example.utils.excel.option.PoiOptions;
 import com.example.utils.excel.sheet.read.AbstractWorkbookReader;
 import com.example.utils.excel.sheet.read.WorkbookFileReader;
 import com.example.utils.excel.sheet.read.WorkbookStreamReader;
-/*import com.example.utils.excel.sheet.write.AbstractWorkbookWriter;
-import com.example.utils.excel.sheet.write.WorkbookFileWriter;
-import com.example.utils.excel.storage.StorageService;*/
 import com.example.utils.excel.sheet.write1.AbstractWorkbookWriter1;
 import com.example.utils.excel.sheet.write1.WorkbookFileWriter1;
+import com.example.utils.excel.sheet.write1.WorkbookStreamWriter1;
 import com.example.utils.excel.storage.StorageService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * @author zhuangqianliao
@@ -26,7 +25,7 @@ public final class POI {
         return new WorkbookFileReader<>(file);
     }
 
-    public static <T> AbstractWorkbookReader<T> fromExcel(final File file, final PoiOptions options) {
+    public static <T> AbstractWorkbookReader<T> fromExcel(final File file, PoiOptions options) {
         return new WorkbookFileReader<>(file, options);
     }
 
@@ -34,7 +33,8 @@ public final class POI {
         return new WorkbookStreamReader<>(inputStream, excelType);
     }
 
-    public static <T> AbstractWorkbookReader<T> fromExcel(final InputStream inputStream, PoiExcelType excelType, final PoiOptions options) {
+    public static <T> AbstractWorkbookReader<T> fromExcel(final InputStream inputStream, PoiExcelType excelType,
+                                                          PoiOptions options) {
         return new WorkbookStreamReader<>(inputStream, excelType, options);
     }
 
@@ -46,7 +46,22 @@ public final class POI {
         return new WorkbookFileWriter1<>(file, options);
     }
 
-    public static <T> AbstractWorkbookWriter1<T, String> writeExcel(final File file, PoiOptions options, final StorageService storageService) {
+    public static <T> AbstractWorkbookWriter1<T, String> writeExcel(final File file, PoiOptions options,
+                                                                    final StorageService storageService) {
         return new WorkbookFileWriter1<>(file, options, storageService);
+    }
+
+    public static <T> AbstractWorkbookWriter1<T, OutputStream> writeExcel(final OutputStream outputStream, PoiExcelType excelType) {
+        return new WorkbookStreamWriter1<>(outputStream, excelType);
+    }
+
+    public static <T> AbstractWorkbookWriter1<T, OutputStream> writeExcel(final OutputStream outputStream, PoiExcelType excelType,
+                                                                          PoiOptions options) {
+        return new WorkbookStreamWriter1<>(outputStream, excelType, options);
+    }
+
+    public static <T> AbstractWorkbookWriter1<T, OutputStream> writeExcel(final OutputStream outputStream, PoiExcelType excelType,
+                                                                          PoiOptions options, StorageService storageService) {
+        return new WorkbookStreamWriter1<>(outputStream, excelType, options, storageService);
     }
 }

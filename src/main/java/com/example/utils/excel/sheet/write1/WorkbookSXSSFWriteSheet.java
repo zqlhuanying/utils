@@ -2,6 +2,7 @@ package com.example.utils.excel.sheet.write1;
 
 import com.example.utils.excel.option.PoiOptions;
 import com.example.utils.excel.sheet.Source;
+import com.example.utils.excel.sheet.WorkbookHelper;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -29,6 +30,16 @@ public class WorkbookSXSSFWriteSheet<T> extends WorkbookWriteSheet1<T> {
 
     @Override
     public Workbook getWorkbook() {
-        return new SXSSFWorkbook((XSSFWorkbook) super.getWorkbook(), getRowAccessWindowSize());
+        if (this.workbook == null) {
+            synchronized (this) {
+                if (this.workbook == null) {
+                    this.workbook = new SXSSFWorkbook(
+                            (XSSFWorkbook) WorkbookHelper.createWorkbook(this.source.type()),
+                            getRowAccessWindowSize()
+                    );
+                }
+            }
+        }
+        return this.workbook;
     }
 }

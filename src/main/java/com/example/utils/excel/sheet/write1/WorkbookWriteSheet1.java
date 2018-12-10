@@ -31,8 +31,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 @Slf4j
 public class WorkbookWriteSheet1<T> extends AbstractWorkbookSheet<T> {
 
-    private volatile Workbook workbook;
-    private volatile Sheet sheet;
+    protected volatile Workbook workbook;
+    protected volatile Sheet sheet;
     private CellStyleHandler<T> cellStyleHandler;
 
     public WorkbookWriteSheet1(Source<?> source, PoiOptions options) {

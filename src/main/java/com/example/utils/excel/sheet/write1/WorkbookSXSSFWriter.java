@@ -3,6 +3,7 @@ package com.example.utils.excel.sheet.write1;
 import com.alibaba.fastjson.JSONObject;
 import com.example.utils.excel.enums.PoiExcelType;
 import com.example.utils.excel.exception.PoiExcelTypeException;
+import com.example.utils.excel.handler.CellStyleHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -30,6 +31,11 @@ public class WorkbookSXSSFWriter<T, R> extends FilterWorkbookWriter<T, R> {
 
     public WorkbookSXSSFWriter<T, R> setRowAccessWindowSize(int rowAccessWindowSize) {
         this.writeSheet.setRowAccessWindowSize(rowAccessWindowSize);
+        return this;
+    }
+
+    public WorkbookSXSSFWriter<T, R> setCellStyleHandler(CellStyleHandler<T> cellStyleHandler) {
+        getWriteSheet().setCellStyleHandler(cellStyleHandler);
         return this;
     }
 
