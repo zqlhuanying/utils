@@ -8,6 +8,7 @@ import com.example.utils.excel.sheet.BeanUtils;
 import com.example.utils.excel.sheet.OPCPackageHelper;
 import com.example.utils.excel.sheet.Source;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -123,7 +124,7 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
         InputStream sheetInputStream = null;
         try {
             XSSFReader reader = new XSSFReader(getOPCPackage());
-            sheetInputStream = reader.getSheet(getSheetIndex());
+            sheetInputStream = Iterators.get(reader.getSheetsData(), getOptions().getSheetIndex());
 
             return processSheet(
                     reader.getStylesTable(),
@@ -144,7 +145,7 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
         XMLReader parser = null;
         try {
             XSSFReader reader = new XSSFReader(getOPCPackage());
-            sheetInputStream = reader.getSheet(getSheetIndex());
+            sheetInputStream = Iterators.get(reader.getSheetsData(), getOptions().getSheetIndex());
 
             parser = SAXHelper.newXMLReader();
             parser.setContentHandler(new SheetTotalHandler());
