@@ -49,9 +49,12 @@ public class WorkbookEventReader<T> extends FilterWorkbookReader<T>
         return this.eventSheet.read(start, end, type);
     }
 
+    /**
+     * Assume event mode can not happen this situation
+     * // todo
+     */
     @Override
     public List<Object> errors(int start, int end) {
-        // todo
         return Collections.emptyList();
     }
 

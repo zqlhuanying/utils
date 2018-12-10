@@ -7,7 +7,7 @@ import com.example.utils.excel.sheet.AbstractWorkbookSheet;
 import com.example.utils.excel.sheet.BeanUtils;
 import com.example.utils.excel.sheet.OPCPackageHelper;
 import com.example.utils.excel.sheet.Source;
-import com.google.common.collect.Lists;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +28,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -43,17 +44,23 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
     /**
      * 标识当前 Sheet 是否已经解析完成
      */
-    private boolean completed = false;
+    private volatile boolean completed = false;
+
+    /**
+     * 单元格值之间的分隔符
+     */
+    private final String separator = ";";
+    private final Splitter splitter = Splitter.on(separator).omitEmptyStrings();
     /**
      * 当前 sheet 的结果缓存
-     * rowNum -> T
+     * rowNum -> String(columnIndex: columnValue${separator} columnIndexN: columnValue${separator})
      */
-    private Map<Integer, T> resultCache;
+    private Map<Integer, String> resultCache;
 
     /**
      * 当前结果数的缓存
      */
-    private Integer rows;
+    private volatile Integer rows;
 
 
     public WorkbookEventSheet(Source<?> source, PoiOptions options) {
@@ -62,13 +69,17 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
     }
 
     protected List<T> read(Class<T> type) {
-        return Lists.newArrayList(doRead(type).values());
+        return doRead().values()
+                .stream()
+                .map(column -> convert(column, type))
+                .collect(Collectors.toList());
     }
 
     protected List<T> read(int start, int end, Class<T> type) {
-        Map<Integer, T> result = doRead(type);
+        Map<Integer, String> result = doRead();
         return IntStream.range(start, end)
                 .mapToObj(result::get)
+                .map(column -> convert(column, type))
                 .collect(Collectors.toList());
     }
 
@@ -95,11 +106,11 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
         return pkg;
     }
 
-    private Map<Integer, T> doRead(Class<T> type) {
+    private Map<Integer, String> doRead() {
         if (!completed) {
             synchronized (this) {
                 if (!completed) {
-                    this.resultCache = getResult(type);
+                    this.resultCache = getResult();
                     completed = true;
                 }
             }
@@ -107,7 +118,7 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
         return this.resultCache;
     }
 
-    private Map<Integer, T> getResult(Class<T> type) {
+    private Map<Integer, String> getResult() {
         InputStream sheetInputStream = null;
         try {
             XSSFReader reader = new XSSFReader(getOPCPackage());
@@ -117,7 +128,7 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
                     reader.getStylesTable(),
                     new ReadOnlySharedStringsTable(getOPCPackage()),
                     sheetInputStream,
-                    type, getOptions().getSkip(), getRows());
+                    getOptions().getSkip(), getRows());
         } catch (OpenXML4JException | IOException | SAXException | ParserConfigurationException e) {
             log.error("read values from sheet failed by using event mode", e);
         } finally {
@@ -151,12 +162,12 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
         return 0;
     }
 
-    private Map<Integer, T> processSheet(StylesTable stylesTable,
-                                         ReadOnlySharedStringsTable readOnlySharedStringsTable,
-                                         InputStream sheetInputStream,
-                                         Class<T> type, int start, int end)
+    private Map<Integer, String> processSheet(StylesTable stylesTable,
+                                              ReadOnlySharedStringsTable readOnlySharedStringsTable,
+                                              InputStream sheetInputStream,
+                                              int start, int end)
             throws ParserConfigurationException, SAXException, IOException {
-        SheetContentHandler sheetContentHandler = new SheetContentHandler(start, end, type);
+        SheetContentHandler sheetContentHandler = new SheetContentHandler(start, end);
         ContentHandler contentHandler = new XSSFSheetXMLHandler(stylesTable, readOnlySharedStringsTable, sheetContentHandler, false);
         XMLReader parser = SAXHelper.newXMLReader();
         parser.setContentHandler(contentHandler);
@@ -166,6 +177,25 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
 
     private String getSheetIndex() {
         return "rId" + String.valueOf(getOptions().getSheetIndex() + 1);
+    }
+
+    private T convert(String column, Class<T> type) {
+        T instance = BeanUtils.newInstance(type);
+
+        Iterable<String> cellIterable = splitter.split(column);
+        for (Iterator<String> iterator = cellIterable.iterator(); iterator.hasNext();) {
+            String cell = iterator.next();
+            int index = cell.indexOf(":");
+            int columnIndex = Integer.parseInt(cell.substring(0, index));
+            String columnValue = cell.substring(index + 1);
+            Mapper<T> mapper = Mappers.getMapper(columnIndex, type);
+            if (mapper == null) {
+                log.warn("can not find suitable mapper for column: {}.", columnIndex);
+                continue;
+            }
+            writeToInstance(mapper, columnValue, instance);
+        }
+        return instance;
     }
 
     private class SheetTotalHandler extends DefaultHandler {
@@ -218,33 +248,31 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
 
     /**
      * sheet content handler
-     * Get content[start, end] from sheet
+     * Get content[start, end](exclude end) from sheet
      */
     private class SheetContentHandler implements XSSFSheetXMLHandler.SheetContentsHandler {
         private final int start;
         private final int end;
-        private final Class<T> type;
-        private final Map<Integer, T> result;
-        private T instance;
+        private final Map<Integer, String> result;
+        private StringBuilder sb;
 
-        SheetContentHandler(int start, int end, Class<T> type) {
+        SheetContentHandler(int start, int end) {
             this.start = start;
             this.end = end;
-            this.type = type;
             this.result = Maps.newHashMapWithExpectedSize(64);
         }
 
         @Override
         public void startRow(int rowNum) {
             if (inRange(rowNum)) {
-                this.instance = BeanUtils.newInstance(type);
+                this.sb = new StringBuilder();
             }
         }
 
         @Override
         public void endRow(int rowNum) {
-            if (this.instance != null) {
-                result.put(rowNum, instance);
+            if (this.sb != null) {
+                result.put(rowNum, this.sb.toString());
             }
         }
 
@@ -253,13 +281,10 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
             CellAddress cellAddress = new CellAddress(cellReference);
             if (inRange(cellAddress.getRow())) {
                 int columnIndex = cellAddress.getColumn();
-
-                Mapper<T> mapper = Mappers.getMapper(columnIndex, type);
-                if (mapper == null) {
-                    log.warn("can not find suitable mapper for column: {}.", columnIndex);
-                    return;
-                }
-                writeToInstance(mapper, formattedValue, this.instance);
+                this.sb.append(columnIndex);
+                this.sb.append(":");
+                this.sb.append(formattedValue);
+                this.sb.append(separator);
             }
         }
 
@@ -272,7 +297,7 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
             return rowNum + 1 > this.start && rowNum + 1 <= this.end;
         }
 
-        Map<Integer, T> getResult() {
+        Map<Integer, String> getResult() {
             return result;
         }
     }
