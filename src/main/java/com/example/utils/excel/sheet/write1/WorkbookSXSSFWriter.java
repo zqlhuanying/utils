@@ -1,29 +1,58 @@
-/*package com.example.utils.excel.sheet.write1;
+package com.example.utils.excel.sheet.write1;
 
+import com.alibaba.fastjson.JSONObject;
+import com.example.utils.excel.enums.PoiExcelType;
+import com.example.utils.excel.exception.PoiExcelTypeException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
-*//**
+/**
  * @author qianliao.zhuang
- *//*
+ */
 @Slf4j
-public class WorkbookSXSSFWriter<T> implements WorkbookWriter<T> {
+public class WorkbookSXSSFWriter<T, R> extends FilterWorkbookWriter<T, R> {
 
-    private AbstractWorkbookWriter1<T> writer;
+    private WorkbookSXSSFWriteSheet<T> writeSheet;
 
-    public WorkbookSXSSFWriter(WorkbookWriter<T> writer) {
-        this.writer = (AbstractWorkbookWriter1<T>) writer;
+    public WorkbookSXSSFWriter(WorkbookWriter<T, R> writer) {
+        super(writer);
+
+        if (writer.getSource().type() != PoiExcelType.XLSX) {
+            throw new PoiExcelTypeException("Streaming can not supported .xls");
+        }
+
+        this.writeSheet = new WorkbookSXSSFWriteSheet<>(getSource(), getOptions());
     }
 
-    public WorkbookSXSSFWriter<T> setRowAccessWindowSize(int rowAccessWindowSize) {
-        ((WorkbookStreamWriteSheet1<T>) this.writer.getWriteSheet())
-                .setRowAccessWindowSize(rowAccessWindowSize);
+    public WorkbookSXSSFWriter<T, R> setRowAccessWindowSize(int rowAccessWindowSize) {
+        this.writeSheet.setRowAccessWindowSize(rowAccessWindowSize);
         return this;
     }
 
     @Override
-    public String write(List<T> values, Class<T> clazz) {
-        return this.writer.write(values, clazz);
+    public R write(List<T> values, Class<T> clazz) {
+        try (
+                Workbook workbook = getWriteSheet().getWorkbook()
+        ) {
+            OutputStream output = getOutputStream();
+            getWriteSheet().write(values, clazz);
+            workbook.write(output);
+            return save(output);
+        } catch (IOException e) {
+            log.error("can not auto-close workbook", e);
+            return null;
+        } catch (Exception e) {
+            log.error("write values: {} failed!",
+                    JSONObject.toJSONString(values), e);
+            return null;
+        }
     }
-}*/
+
+    public WorkbookWriteSheet1<T> getWriteSheet() {
+        return this.writeSheet;
+    }
+}

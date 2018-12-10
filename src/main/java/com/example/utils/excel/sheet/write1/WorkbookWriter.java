@@ -1,11 +1,26 @@
-/*package com.example.utils.excel.sheet.write1;
+package com.example.utils.excel.sheet.write1;
 
+import com.example.utils.excel.option.PoiOptions;
+import com.example.utils.excel.sheet.Source;
+import com.example.utils.excel.storage.StorageService;
+
+import java.io.OutputStream;
 import java.util.List;
 
-*//**
- * @author qianliao.zhuang
- *//*
-public interface WorkbookWriter<T> {
+/**
+ * @author zhuangqianliao
+ */
+public interface WorkbookWriter<T, R> {
 
-    String write(final List<T> values, final Class<T> clazz);
-}*/
+    Source<?> getSource();
+
+    PoiOptions getOptions();
+
+    R write(final List<T> values, final Class<T> clazz);
+
+    OutputStream getOutputStream();
+
+    StorageService getStorage();
+
+    R save(OutputStream outputStream);
+}

@@ -45,7 +45,21 @@ public abstract class AbstractWorkbookSheet<T> implements WorkbookSheet<T> {
         }
     }
 
-    private boolean ignoreField(String field, List<String> ignores) {
+    protected String getFromInstance(Mapper<T> mapper, T instance) {
+        Object returnValue = BeanUtils.doInvoke(
+                instance.getClass(), mapper.getReadMethodName(), mapper.getReadMethodType(),
+                instance, null
+        );
+
+        Parser<?> parser = Parsers.getOrDefault(
+                mapper.getReadMethodType().returnType(),
+                Parsers.defaultParser()
+        );
+
+        return parser.deParse(returnValue);
+    }
+
+    protected boolean ignoreField(String field, List<String> ignores) {
         return CollectionUtil.isNotEmpty(ignores) && ignores.contains(field);
     }
 }

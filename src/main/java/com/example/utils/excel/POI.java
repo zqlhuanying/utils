@@ -8,6 +8,9 @@ import com.example.utils.excel.sheet.read.WorkbookStreamReader;
 /*import com.example.utils.excel.sheet.write.AbstractWorkbookWriter;
 import com.example.utils.excel.sheet.write.WorkbookFileWriter;
 import com.example.utils.excel.storage.StorageService;*/
+import com.example.utils.excel.sheet.write1.AbstractWorkbookWriter1;
+import com.example.utils.excel.sheet.write1.WorkbookFileWriter1;
+import com.example.utils.excel.storage.StorageService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -35,15 +38,15 @@ public final class POI {
         return new WorkbookStreamReader<>(inputStream, excelType, options);
     }
 
-/*    public static <T> AbstractWorkbookWriter<T> writeExcel(final File file) {
-        return new WorkbookFileWriter<>(file);
+    public static <T> AbstractWorkbookWriter1<T, String> writeExcel(final File file) {
+        return new WorkbookFileWriter1<>(file);
     }
 
-    public static <T> AbstractWorkbookWriter<T> writeExcel(final File file, PoiOptions options) {
-        return new WorkbookFileWriter<>(file, options);
+    public static <T> AbstractWorkbookWriter1<T, String> writeExcel(final File file, PoiOptions options) {
+        return new WorkbookFileWriter1<>(file, options);
     }
 
-    public static <T> AbstractWorkbookWriter<T> writeExcel(final File file, PoiOptions options, final StorageService storageService) {
-        return new WorkbookFileWriter<>(file, options, storageService);
-    }*/
+    public static <T> AbstractWorkbookWriter1<T, String> writeExcel(final File file, PoiOptions options, final StorageService storageService) {
+        return new WorkbookFileWriter1<>(file, options, storageService);
+    }
 }

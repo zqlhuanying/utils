@@ -1,87 +1,101 @@
-/*package com.example.utils.excel.sheet.write1;
+package com.example.utils.excel.sheet.write1;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.example.utils.excel.exception.PoiException;
 import com.example.utils.excel.handler.CellStyleHandler;
 import com.example.utils.excel.option.PoiOptions;
+import com.example.utils.excel.sheet.PoiFile;
+import com.example.utils.excel.sheet.PoiOutputStream;
+import com.example.utils.excel.sheet.Source;
 import com.example.utils.excel.storage.LocalStorage;
 import com.example.utils.excel.storage.StorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-*//**
+/**
  * @author zhuangqianliao
- *//*
+ */
 @Slf4j
-public abstract class AbstractWorkbookWriter1<T> implements WorkbookWriter<T> {
+public abstract class AbstractWorkbookWriter1<T, R> implements WorkbookWriter<T, R> {
 
-    protected static final StorageService DEFAULT_STORAGE_SERVICE = new LocalStorage();
+    static final StorageService DEFAULT_STORAGE_SERVICE = new LocalStorage();
 
-    protected final PoiOptions options;
+    protected WorkbookWriteSheet1<T> writeSheet;
     protected final StorageService storageService;
 
-    private WorkbookWriteSheet1<T> writeSheet;
-    private CellStyleHandler<T> cellStyleHandler;
-
-    public AbstractWorkbookWriter1(PoiOptions options, StorageService storageService) {
-        this.options = options;
+    public AbstractWorkbookWriter1(StorageService storageService) {
         this.storageService = storageService;
     }
 
     @Override
-    public String write(final List<T> values, final Class<T> clazz) {
+    public R write(final List<T> values, final Class<T> clazz) {
         try (
-                Workbook workbook = getWriteSheet().getWorkbook();
-                OutputStream output = getOutputStream()
+                Workbook workbook = getWriteSheet().getWorkbook()
         ) {
+            OutputStream output = getOutputStream();
             getWriteSheet().write(values, clazz);
             workbook.write(output);
+            return save(output);
         } catch (IOException e) {
             log.error("can not auto-close workbook", e);
             return null;
         } catch (Exception e) {
             log.error("write values: {} failed!",
-                    JSON.toJSONString(values), e);
+                    JSONObject.toJSONString(values), e);
             return null;
         }
-        return doSave(storageService);
     }
 
     public WorkbookWriteSheet1<T> getWriteSheet() {
-        if (this.writeSheet == null) {
-            this.writeSheet = defaultWriteSheet();
-        }
         return this.writeSheet;
     }
 
-    public AbstractWorkbookWriter1<T> setSheet(WorkbookWriteSheet1<T> writeSheet) {
+    public void setWriteSheet(WorkbookWriteSheet1<T> writeSheet) {
         this.writeSheet = writeSheet;
+    }
+
+    public AbstractWorkbookWriter1<T, R> setCellStyleHandler(CellStyleHandler<T> cellStyleHandler) {
+        getWriteSheet().setCellStyleHandler(cellStyleHandler);
         return this;
     }
 
-    public AbstractWorkbookWriter1<T> setCellStyleHandler(CellStyleHandler<T> cellStyleHandler) {
-        this.cellStyleHandler = cellStyleHandler;
-        return this;
-    }
-
-
-    public WorkbookSXSSFWriter<T> sxssfWriter() {
-        this.setSheet(new WorkbookStreamWriteSheet1<>(this, this.options)
-                .setCellStyleHandler(this.cellStyleHandler));
+    public WorkbookSXSSFWriter<T, R> sxssfWriter() {
         return new WorkbookSXSSFWriter<>(this);
     }
 
-    protected abstract Workbook createWorkbook();
-
-    protected abstract OutputStream getOutputStream();
-
-    protected abstract String doSave(StorageService storageService);
-
-    private WorkbookWriteSheet1<T> defaultWriteSheet() {
-        return new WorkbookWriteSheet1<>(this, this.options)
-                .setCellStyleHandler(this.cellStyleHandler);
+    @Override
+    public OutputStream getOutputStream() {
+        try {
+            if (getSource() instanceof PoiOutputStream) {
+                return ((PoiOutputStream) getSource()).get();
+            }
+            if (getSource() instanceof PoiFile) {
+                return new FileOutputStream(((PoiFile) getSource()).get());
+            }
+            throw new PoiException("Source type is not be supported");
+        } catch (IOException e) {
+            log.error("create output stream failed.", e);
+            throw new PoiException("create output stream failed");
+        }
     }
-}*/
+
+    @Override
+    public StorageService getStorage() {
+        return this.storageService;
+    }
+
+    @Override
+    public Source<?> getSource() {
+        return getWriteSheet().getSource();
+    }
+
+    @Override
+    public PoiOptions getOptions() {
+        return getWriteSheet().getOptions();
+    }
+}

@@ -93,6 +93,20 @@ public class PoiPeopleTest {
                 .read(People.class);
         assert peoples.size() == excelSize;
     }
+
+    @Test
+    public void smallFileWrite() {
+        String out = dir + "out.xlsx";
+        List<People> peoples = POI.<People>fromExcel(new File(smallFilePath))
+                .eventReader()
+                .read(People.class);
+
+        String path = POI.<People>writeExcel(new File(out))
+                .write(peoples, People.class);
+
+        assert path.equals(out);
+    }
+
     private static class PeopleMapper extends Mapper<People> {
 
         static void init() {
