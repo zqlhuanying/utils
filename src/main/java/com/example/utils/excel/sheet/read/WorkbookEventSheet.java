@@ -10,6 +10,7 @@ import com.example.utils.excel.sheet.Source;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -49,7 +50,7 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
     /**
      * 单元格值之间的分隔符
      */
-    private final String separator = ";";
+    private final String separator = ">";
     private final Splitter splitter = Splitter.on(separator).omitEmptyStrings();
     /**
      * 当前 sheet 的结果缓存
@@ -187,7 +188,7 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
             String cell = iterator.next();
             int index = cell.indexOf(":");
             int columnIndex = Integer.parseInt(cell.substring(0, index));
-            String columnValue = cell.substring(index + 1);
+            String columnValue = StringEscapeUtils.unescapeXml(cell.substring(index + 1));
             Mapper<T> mapper = Mappers.getMapper(columnIndex, type);
             if (mapper == null) {
                 log.warn("can not find suitable mapper for column: {}.", columnIndex);
@@ -283,7 +284,7 @@ public class WorkbookEventSheet<T> extends AbstractWorkbookSheet<T> {
                 int columnIndex = cellAddress.getColumn();
                 this.sb.append(columnIndex);
                 this.sb.append(":");
-                this.sb.append(formattedValue);
+                this.sb.append(StringEscapeUtils.escapeXml11(formattedValue));
                 this.sb.append(separator);
             }
         }
