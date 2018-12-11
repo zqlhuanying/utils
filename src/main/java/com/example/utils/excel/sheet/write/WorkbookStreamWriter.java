@@ -1,4 +1,4 @@
-package com.example.utils.excel.sheet.write1;
+package com.example.utils.excel.sheet.write;
 
 import com.example.utils.excel.enums.PoiExcelType;
 import com.example.utils.excel.option.PoiOptions;
@@ -12,24 +12,24 @@ import java.io.OutputStream;
  * @author zhuangqianliao
  */
 @Slf4j
-public class WorkbookStreamWriter1<T> extends AbstractWorkbookWriter1<T, OutputStream> {
+public class WorkbookStreamWriter<T> extends AbstractWorkbookWriter<T, OutputStream> {
 
     private final PoiOutputStream<OutputStream> outputStream;
 
-    public WorkbookStreamWriter1(OutputStream outputStream, PoiExcelType excelType) {
+    public WorkbookStreamWriter(OutputStream outputStream, PoiExcelType excelType) {
         this(outputStream, excelType, PoiOptions.settings().setSkip(0).build(), DEFAULT_STORAGE_SERVICE);
     }
 
-    public WorkbookStreamWriter1(OutputStream outputStream, PoiExcelType excelType,
-                                 PoiOptions options) {
+    public WorkbookStreamWriter(OutputStream outputStream, PoiExcelType excelType,
+                                PoiOptions options) {
         this(outputStream, excelType, options, DEFAULT_STORAGE_SERVICE);
     }
 
-    public WorkbookStreamWriter1(OutputStream outputStream, PoiExcelType excelType,
-                                 PoiOptions options, StorageService storageService) {
+    public WorkbookStreamWriter(OutputStream outputStream, PoiExcelType excelType,
+                                PoiOptions options, StorageService storageService) {
         super(storageService);
         this.outputStream = new PoiOutputStream<>(outputStream, excelType);
-        this.writeSheet = new WorkbookWriteSheet1<>(this.outputStream, options);
+        this.writeSheet = new WorkbookWriteSheet<>(this.outputStream, options);
     }
 
     @Override

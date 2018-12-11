@@ -1,25 +1,25 @@
-/*package com.example.utils.excel.sheet.write;
+package com.example.utils.excel.sheet.write;
 
 import com.example.utils.excel.enums.PoiExcelType;
-import com.example.utils.excel.exception.PoiException;
 import com.example.utils.excel.option.PoiOptions;
-import com.example.utils.excel.sheet.WorkbookHelper;
+import com.example.utils.excel.sheet.PoiFile;
 import com.example.utils.excel.storage.LocalStorage;
 import com.example.utils.excel.storage.StorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.commons.io.IOUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 
-*//**
+/**
  * @author zhuangqianliao
- *//*
+ */
 @Slf4j
-public class WorkbookFileWriter<T> extends AbstractWorkbookWriter<T> {
+public class WorkbookFileWriter<T> extends AbstractWorkbookWriter<T, String> {
 
-    private final File file;
+    private final PoiFile<File> file;
 
     public WorkbookFileWriter(File file) {
         this(file, PoiOptions.settings().setSkip(0).build(), DEFAULT_STORAGE_SERVICE);
@@ -30,44 +30,30 @@ public class WorkbookFileWriter<T> extends AbstractWorkbookWriter<T> {
     }
 
     public WorkbookFileWriter(File file, PoiOptions options, StorageService storageService) {
-        super(options, storageService);
-        this.file = file;
+        super(storageService);
+        this.file = new PoiFile<>(file);
         check(this.file);
+
+        this.writeSheet = new WorkbookWriteSheet<>(this.file, options);
     }
 
     @Override
-    protected Workbook createWorkbook() {
-        String extension = FilenameUtils.getExtension(file.getName());
-        return WorkbookHelper.createWorkbook(PoiExcelType.from(extension));
-    }
-
-    @Override
-    protected OutputStream getOutputStream() {
+    public String save(OutputStream outputStream) {
         try {
-            return new FileOutputStream(file);
-        } catch (FileNotFoundException e) {
-            log.error("file: {} not found", file.getName());
-            throw new PoiException("file not found");
-        }
-    }
-
-    @Override
-    protected String doSave(StorageService storageService) {
-        try {
-            return storageService.store(file);
+            return getStorage().store(this.file.get());
         } finally {
             try {
-                if (!(storageService instanceof LocalStorage)) {
-                    FileUtils.forceDelete(file);
+                if (!(getStorage() instanceof LocalStorage)) {
+                    FileUtils.forceDelete(this.file.get());
                 }
             } catch (IOException e) {
-                log.error("delete file: {} failed!", file.getAbsolutePath());
+                log.error("delete file: {} failed!", this.file.get().getAbsolutePath());
             }
+            IOUtils.closeQuietly(outputStream);
         }
     }
 
-    private void check(File file) {
-        String extension = FilenameUtils.getExtension(file.getName());
-        PoiExcelType.from(extension);
+    private void check(PoiFile<File> file) {
+        PoiExcelType.from(file.extension());
     }
-}*/
+}
