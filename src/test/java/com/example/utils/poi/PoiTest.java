@@ -16,6 +16,8 @@ import java.util.concurrent.TimeUnit;
 public class PoiTest {
 
     private static final String dir = "D:\\1\\";
+    private static final String path = dir + "policy10000.xlsx";
+    private static final int expectedSize = 60036;
 
     @Before
     public void init() {
@@ -29,7 +31,6 @@ public class PoiTest {
      */
     @Test(expected = OutOfMemoryError.class)
     public void outOfMemoryTest() {
-        String path = dir + "policy10000.xlsx";
         POI.<Policy>fromExcel(new File(path))
                 .read(Policy.class);
     }
@@ -41,13 +42,12 @@ public class PoiTest {
     @Test
     public void noneOutOfMemoryTest() {
         long start = System.currentTimeMillis();
-        String path = dir + "policy10000.xlsx";
         List<Policy> policies = POI.<Policy>fromExcel(new File(path))
                 .eventReader()
                 .read(Policy.class);
         long end = System.currentTimeMillis();
         System.out.println("读取耗时：" + (end - start));
-        assert policies.size() == 60036;
+        assert policies.size() == expectedSize;
     }
 
     /**
@@ -90,21 +90,27 @@ public class PoiTest {
                 .read(Policy.class);
         long end = System.currentTimeMillis();
         System.out.println("读取耗时：" + (end - start));
-        assert policies.size() == 60036;
+        assert policies.size() == expectedSize;
     }
 
     @Test
     public void smallFileWrite() {
-        String in = dir + "policy.xlsx";
-        String out = dir + "out.xlsx";
+        String in = dir + "policy10000.xlsx";
         List<Policy> policies = POI.<Policy>fromExcel(new File(in))
                 .eventReader()
                 .read(Policy.class);
 
+        long start = System.currentTimeMillis();
+        String out = dir + "out.xlsx";
         String path = POI.<Policy>writeExcel(new File(out))
                 .sxssfWriter()
                 .write(policies, Policy.class);
+        long end = System.currentTimeMillis();
+        System.out.println("写入耗时： " + (end - start));
 
-        assert path.equals(out);
+        List<Policy> policies0 = POI.<Policy>fromExcel(new File(path))
+                .eventReader()
+                .read(Policy.class);
+        assert policies0.size() == expectedSize;
     }
 }
