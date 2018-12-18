@@ -60,16 +60,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Getter
 public final class HttpExecutors {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpExecutors.class);
-    private static final String ENCODEING = Charsets.UTF_8.name();
+    private static final String ENCODING = Charsets.UTF_8.name();
     private static final String QUERY_REGEX = "(?<=%s=)([^&]*)";
     private static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 20;
     private static final int DEFAULT_MAX_ROUTE_CONNECTIONS = 2;
     private static final ContentType MULTIPART_FORM_DATA = ContentType.create(
-            "multipart/form-data", ENCODEING);
+            "multipart/form-data", ENCODING);
     public static final ContentType APPLICATION_JSON = ContentType.create(
-            "application/json", ENCODEING);
+            "application/json", ENCODING);
     public static final ContentType APPLICATION_FORM_URLENCODED = ContentType.create(
-            "application/x-www-form-urlencoded", ENCODEING);
+            "application/x-www-form-urlencoded", ENCODING);
 
     private final String url;
     private final Map<String, String> headers;
@@ -291,8 +291,8 @@ public final class HttpExecutors {
         } else {
             String body = StringUtils.isBlank(postBody) ? buildQueryString(params) : postBody;
             ContentType contentType = StringUtils.isBlank(postBody) ? APPLICATION_FORM_URLENCODED : APPLICATION_JSON;
-            StringEntity stringEntity = new StringEntity(body, ENCODEING);
-            stringEntity.setContentEncoding(ENCODEING);
+            StringEntity stringEntity = new StringEntity(body, ENCODING);
+            stringEntity.setContentEncoding(ENCODING);
             stringEntity.setContentType(contentType.getMimeType());
             httpEntity = stringEntity;
         }
@@ -318,9 +318,9 @@ public final class HttpExecutors {
         }
 
         try {
-            return URLEncoder.encode(input, ENCODEING);
+            return URLEncoder.encode(input, ENCODING);
         } catch (UnsupportedEncodingException e) {
-            LOGGER.error("不支持 {} 编码", ENCODEING, e);
+            LOGGER.error("不支持 {} 编码", ENCODING, e);
         }
 
         return input;
@@ -372,7 +372,7 @@ public final class HttpExecutors {
                 return "";
             }
 
-            String result = EntityUtils.toString(entity, ENCODEING);
+            String result = EntityUtils.toString(entity, ENCODING);
             // ensure consume
             EntityUtils.consume(entity);
             return result;
