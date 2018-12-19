@@ -69,8 +69,9 @@ public abstract class AbstractWorkbookReader<T>
         return readSheet;
     }
 
-    public void setReadSheet(WorkbookReadSheet<T> readSheet) {
+    public AbstractWorkbookReader<T> setReadSheet(WorkbookReadSheet<T> readSheet) {
         this.readSheet = readSheet;
+        return this;
     }
 
     @Override
