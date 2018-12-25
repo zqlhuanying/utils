@@ -1,10 +1,9 @@
-package com.example.utils.fastjson.typereference;
+package com.example.utils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -15,17 +14,14 @@ import java.util.List;
  * @author qianliao.zhuang
  * 承接Web层返回的数据
  */
-@Slf4j
 public class BaseResponse<T> implements Serializable {
 
     private static final long serialVersionUID = -9009950023183744177L;
 
-    // 返回值 0：正确 ：其他 不正确，可以适当使用调用链ID
     @Getter
     @Setter
     private Long errcode;
 
-    // 操作消息
     @Getter
     @Setter
     private String errmsg;

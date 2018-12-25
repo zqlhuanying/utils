@@ -56,8 +56,9 @@ public abstract class AbstractWorkbookWriter<T, R> implements WorkbookWriter<T, 
         return this.writeSheet;
     }
 
-    public void setWriteSheet(WorkbookWriteSheet<T> writeSheet) {
+    public AbstractWorkbookWriter<T, R> setWriteSheet(WorkbookWriteSheet<T> writeSheet) {
         this.writeSheet = writeSheet;
+        return this;
     }
 
     public AbstractWorkbookWriter<T, R> setCellStyleHandler(CellStyleHandler<T> cellStyleHandler) {
